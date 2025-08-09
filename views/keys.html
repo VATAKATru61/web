@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Ключи | FAST VPN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/tariffs.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-key"></i>
+        Подписки
+    </h1>
+    <p class="page-subtitle">Всего: {{ total_keys }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="search-container">
+        <input type="text" id="keySearchInput" class="search-input" placeholder="🔍 Поиск по email, UUID или tg_id..." />
+        <button class="btn btn-sm btn-danger" id="delete-selected-keys">Удалить выбранные</button>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all-keys"></th>
+                <th>TG_ID</th>
+                <th>UUID</th>
+                <th>Email</th>
+                <th>Дата окончания</th>
+                <th>Кластер</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k in keys %}
+            <tr>
+                <td><input type="checkbox" class="key-checkbox" value="{{ k.email }}"></td>
+                <td>{{ k.tg_id }}</td>
+                <td>{{ k.client_id }}</td>
+                <td>{{ k.email }}</td>
+                <td>{{ k.expiry_time_human }}</td>
+                <td>{{ k.server_id or '—' }}</td>
+                <td>
+                    <button class="btn-edit" data-key='{{ k | tojson | safe }}' onclick="openEditModalFromButton(this)">
+                        <i class="fas fa-edit"></i>
+                        Редактировать
+                    </button>
+                    <button onclick='openDeleteModal("{{ k.email }}")' class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                        Удалить
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Редактировать ключ</h2>
+            <button class="close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editKeyForm">
+                <input type="hidden" id="edit-original_client_id">
+                <input type="hidden" id="edit-tg_id">
+
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="text" id="edit-email" class="form-control">
+                </div>
+                <input type="hidden" id="edit-expiry_time">
+                <div class="form-group">
+                    <label>Дата истечения:</label>
+                    <input type="datetime-local" id="edit-expiry_date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Сервер (ID):</label>
+                    <input type="text" id="edit-server_id" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка Remnawave:</label>
+                    <input type="text" id="edit-remnawave_link" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>ID тарифа:</label>
+                    <input type="number" id="edit-tariff_id" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Заморожен:</label>
+                    <select id="edit-is_frozen" class="form-control">
+                        <option value="false">Нет</option>
+                        <option value="true">Да</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Псевдоним:</label>
+                    <input type="text" id="edit-alias" class="form-control">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Сохранить
+                    </button>
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Подтверждение удаления</h2>
+            <button class="close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Вы уверены, что хотите удалить ключ с email <strong><span id="delete-key-email"></span></strong>?</p>
+            <p class="text-muted">Это действие нельзя отменить.</p>
+        </div>
+        <div class="modal-footer">
+            <button onclick="confirmDelete()" class="btn btn-danger">
+                <i class="fas fa-trash"></i>
+                Да, удалить
+            </button>
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Отмена
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedKey = null;
+    const TG_ID = "{{ tg_id or '0' }}";
+    const TOKEN = "{{ token or '' }}";
+
+    function openEditModal(key) {
+        selectedKey = key;
+        document.getElementById('edit-original_client_id').value = key.client_id;
+        document.getElementById('edit-tg_id').value = key.tg_id;
+        document.getElementById('edit-email').value = key.email || '';
+        document.getElementById('edit-expiry_time').value = key.expiry_time || '';
+        document.getElementById('edit-server_id').value = key.server_id || '';
+        document.getElementById('edit-remnawave_link').value = key.remnawave_link || '';
+        document.getElementById('edit-tariff_id').value = key.tariff_id || '';
+        document.getElementById('edit-is_frozen').value = key.is_frozen.toString();
+        document.getElementById('edit-alias').value = key.alias || '';
+        const expiry = key.expiry_time ? new Date(key.expiry_time) : null;
+        document.getElementById('edit-expiry_date').value = expiry
+            ? expiry.toISOString().slice(0, 16)
+            : '';
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    document.getElementById('editKeyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const clientId = document.getElementById('edit-original_client_id').value;
+        const tgId = document.getElementById('edit-tg_id').value;
+
+        const dateStr = document.getElementById('edit-expiry_date').value;
+        let expiry_time = null;
+        if (dateStr) {
+            expiry_time = new Date(dateStr).getTime();
+        }
+        document.getElementById('edit-expiry_time').value = expiry_time;
+        const payload = {
+            email: document.getElementById('edit-email').value,
+            expiry_time: expiry_time,
+            server_id: document.getElementById('edit-server_id').value || null,
+            remnawave_link: document.getElementById('edit-remnawave_link').value || null,
+            tariff_id: parseInt(document.getElementById('edit-tariff_id').value, 10) || null,
+            is_frozen: document.getElementById('edit-is_frozen').value === 'true',
+            alias: document.getElementById('edit-alias').value || null
+        };
+
+        Object.keys(payload).forEach(key => {
+            if (payload[key] === null) delete payload[key];
+        });
+
+        const email = document.getElementById('edit-email').value;
+        const res = await fetch(
+            `/keys/edit/by_email/${encodeURIComponent(email)}?tg_id=${encodeURIComponent(tgId)}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Token': TOKEN
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+        if (res.ok) location.reload();
+        else alert('❌ Ошибка при обновлении ключа');
+    });
+
+    function openDeleteModal(email) {
+        document.getElementById('delete-key-email').innerText = email;
+        selectedKey = email;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+    async function confirmDelete() {
+        const res = await fetch(
+            `/keys/by_email/${encodeURIComponent(selectedKey)}?tg_id=${TG_ID}`,
+            { method: 'DELETE', headers: { 'X-Token': TOKEN } }
+        );
+        if (res.ok) location.reload();
+        else alert('❌ Ошибка при удалении ключа');
+    }
+
+    document.getElementById('keySearchInput').addEventListener('input', function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('.data-table tbody tr').forEach(row => {
+            row.style.display = Array.from(row.querySelectorAll('td'))
+                .some(td => td.textContent.toLowerCase().includes(filter))
+                ? '' : 'none';
+        });
+    });
+
+    document.getElementById('select-all-keys').addEventListener('change', function() {
+        const checked = this.checked;
+        document.querySelectorAll('.key-checkbox').forEach(cb => cb.checked = checked);
+    });
+
+    document.getElementById('delete-selected-keys').addEventListener('click', async function() {
+        const selected = Array.from(document.querySelectorAll('.key-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert('Выберите хотя бы одну подписку для удаления.');
+            return;
+        }
+        if (!confirm(`Удалить выбранные подписки (${selected.length} шт.)?`)) return;
+        let success = true;
+        for (const email of selected) {
+            const res = await fetch(`/keys/by_email/${encodeURIComponent(email)}?tg_id=${TG_ID}`, {
+                method: 'DELETE',
+                headers: { 'X-Token': TOKEN }
+            });
+            if (!res.ok) {
+                success = false;
+                break;
+            }
+        }
+        if (success) location.reload();
+        else alert('❌ Ошибка при массовом удалении подписок');
+    });
+
+    function openEditModalFromButton(btn) {
+        const key = JSON.parse(btn.dataset.key);
+        openEditModal(key);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}Подарки | FAST VPN{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/table.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-gift"></i>
+        Подарки
+    </h1>
+    <p class="page-subtitle">Всего: {{ gifts|length }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="search-container">
+        <input type="text" id="giftSearchInput" class="search-input" placeholder="🔍 Поиск по ID, получателю, отправителю..." />
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-sm btn-success" onclick="openCreateModal()">Создать подарок</button>
+            <button class="btn btn-sm btn-danger" id="delete-selected-gifts">Удалить выбранные</button>
+        </div>
+    </div>
+    <table class="data-table" id="giftsTable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all-gifts"></th>
+                <th>ID подарка</th>
+                <th>Отправитель</th>
+                <th>Получатель</th>
+                <th>Дата создания</th>
+                <th>Месяцы</th>
+                <th>Тариф</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in gifts %}
+            <tr>
+                <td><input type="checkbox" class="gift-checkbox" value="{{ g.gift_id }}"></td>
+                <td>{{ g.gift_id }}</td>
+                <td>{{ g.sender_tg_id }}</td>
+                <td>{{ g.recipient_tg_id }}</td>
+                <td>{{ g.created_at_human }}</td>
+                <td>{{ g.selected_months or '—' }}</td>
+                <td>
+                  {% set tariff = tariffs | selectattr('id', 'equalto', g.tariff_id | int) | first %}
+                  {{ tariff.name if tariff else g.tariff_id or '—' }}
+                </td>
+                <td>
+                  {% if g.is_used %}
+                    Использован
+                  {% elif g.is_unlimited %}
+                    Безлимит
+                  {% else %}
+                    Активен
+                  {% endif %}
+                </td>
+                <td>
+                                      <button class="btn-edit" data-gift='{{ g|tojson|safe }}' onclick="openEditModalFromButton(this)">
+                        <i class="fas fa-edit"></i>
+                        Редактировать
+                    </button>
+                    <button onclick='openDeleteModal("{{ g.gift_id }}")' class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                        Удалить
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Редактировать подарок</h2>
+      <button class="close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="editGiftForm">
+        <input type="hidden" id="edit-gift_id">
+        <div class="form-group">
+          <label>ID отправителя:</label>
+          <input type="text" id="edit-sender_tg_id" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>ID получателя:</label>
+          <input type="text" id="edit-recipient_tg_id" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Количество месяцев:</label>
+          <input type="number" id="edit-selected_months" class="form-control" min="0">
+        </div>
+        <div class="form-group">
+          <label>Тариф:</label>
+          <select id="edit-tariff_id" class="form-control" required>
+            {% for t in tariffs %}
+              <option value="{{ t.id }}">{{ t.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Комментарий:</label>
+          <input type="text" id="edit-comment" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Безлимитный:</label>
+          <select id="edit-is_unlimited" class="form-control">
+            <option value="false">Нет</option>
+            <option value="true">Да</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Использован:</label>
+          <select id="edit-is_used" class="form-control">
+            <option value="false">Нет</option>
+            <option value="true">Да</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Макс. использований:</label>
+          <input type="number" id="edit-max_usages" class="form-control" min="0">
+        </div>
+        <div class="form-group">
+          <label>Ссылка на подарок:</label>
+          <input type="text" id="edit-gift_link" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Время истечения:</label>
+          <input type="text" id="edit-expiry_time" class="form-control" placeholder="YYYY-MM-DD HH:MM:SS">
+        </div>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Сохранить
+          </button>
+          <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="deleteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Подтверждение удаления</h2>
+      <button class="close" onclick="closeDeleteModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Вы уверены, что хотите удалить подарок с ID <strong><span id="delete-gift-id"></span></strong>?</p>
+      <p class="text-muted">Это действие нельзя отменить.</p>
+    </div>
+    <div class="modal-footer">
+      <button onclick="confirmDelete()" class="btn btn-danger">
+        <i class="fas fa-trash"></i>
+        Да, удалить
+      </button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary">
+        <i class="fas fa-times"></i>
+        Отмена
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="createModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Создать подарок</h2>
+      <button class="close" onclick="closeCreateModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="createGiftForm">
+        <input type="hidden" id="create-sender_tg_id" value="{{ tg_id }}">
+        <div class="form-group">
+          <label>ID получателя:</label>
+          <input type="text" id="create-recipient_tg_id" class="form-control">
+        </div>
+        <div class="form-group" style="display: none;">
+          <label>Количество месяцев:</label>
+          <input type="number" id="create-selected_months" class="form-control" min="0" value="0" required>
+        </div>
+        <div class="form-group">
+          <label>Тариф:</label>
+          <select id="create-tariff_id" class="form-control" required>
+            {% for t in tariffs %}
+              <option value="{{ t.id }}">{{ t.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Макс. использований:</label>
+          <input type="number" id="create-max_usages" class="form-control" min="0" value="0">
+        </div>
+        <div class="form-group" style="display: none;">
+          <label>Ссылка на подарок:</label>
+          <input type="text" id="create-gift_link" class="form-control">
+        </div>
+        <div class="form-group" style="display: none;">
+          <label>Время истечения:</label>
+          <input type="datetime-local" id="create-expiry_time" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Безлимитный:</label>
+          <select id="create-is_unlimited" class="form-control">
+            <option value="false">Нет</option>
+            <option value="true">Да</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Использован:</label>
+          <select id="create-is_used" class="form-control">
+            <option value="false">Нет</option>
+            <option value="true">Да</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Количество:</label>
+          <input type="number" id="create-count" class="form-control" min="1" value="1" required>
+        </div>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Создать
+          </button>
+          <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKEN = "{{ token or '' }}";
+const TG_ID = "{{ tg_id or '0' }}";
+let selectedGift = null;
+
+document.getElementById('giftSearchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#giftsTable tbody tr').forEach(row => {
+    const cells = Array.from(row.cells);
+    row.style.display = cells.some(td => td.textContent.toLowerCase().includes(q)) ? '' : 'none';
+  });
+});
+
+function openEditModal(gift) {
+  selectedGift = gift;
+  document.getElementById('edit-gift_id').value = gift.gift_id;
+  document.getElementById('edit-sender_tg_id').value = gift.sender_tg_id || '';
+  document.getElementById('edit-recipient_tg_id').value = gift.recipient_tg_id || '';
+  document.getElementById('edit-selected_months').value = gift.selected_months || '';
+  document.getElementById('edit-tariff_id').value = gift.tariff_id || '';
+  document.getElementById('edit-comment').value = gift.comment || '';
+  document.getElementById('edit-is_unlimited').value = gift.is_unlimited ? 'true' : 'false';
+  document.getElementById('edit-is_used').value = gift.is_used ? 'true' : 'false';
+  document.getElementById('edit-max_usages').value = gift.max_usages || '';
+  document.getElementById('edit-gift_link').value = gift.gift_link || '';
+  document.getElementById('edit-expiry_time').value = gift.expiry_time || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+function openEditModalFromButton(btn) {
+  const gift = JSON.parse(btn.getAttribute('data-gift'));
+  openEditModal(gift);
+}
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+document.getElementById('editGiftForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const giftId = document.getElementById('edit-gift_id').value;
+
+  const expiryRaw = document.getElementById('edit-expiry_time').value;
+  let expiry_time = null;
+  if (expiryRaw) {
+    const d = new Date(expiryRaw);
+    expiry_time = d.getFullYear() + '-' +
+                  String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                  String(d.getDate()).padStart(2, '0') + 'T' +
+                  String(d.getHours()).padStart(2, '0') + ':' +
+                  String(d.getMinutes()).padStart(2, '0') + ':' +
+                  String(d.getSeconds()).padStart(2, '0') + '.' +
+                  String(d.getMilliseconds()).padStart(3, '0');
+  }
+
+  const payload = {
+    recipient_tg_id: document.getElementById('edit-recipient_tg_id').value ? parseInt(document.getElementById('edit-recipient_tg_id').value, 10) : null,
+    selected_months: document.getElementById('edit-selected_months').value ? parseInt(document.getElementById('edit-selected_months').value, 10) : null,
+    expiry_time: expiry_time,
+    gift_link: document.getElementById('edit-gift_link').value || null,
+    is_used: document.getElementById('edit-is_used').value === 'true',
+    is_unlimited: document.getElementById('edit-is_unlimited').value === 'true',
+    max_usages: document.getElementById('edit-max_usages').value ? parseInt(document.getElementById('edit-max_usages').value, 10) : null,
+    tariff_id: document.getElementById('edit-tariff_id').value ? parseInt(document.getElementById('edit-tariff_id').value, 10) : null
+  };
+
+  const res = await fetch(`/gifts/${encodeURIComponent(giftId)}?tg_id=${TG_ID}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Token': TOKEN
+    },
+    body: JSON.stringify(payload)
+  });
+  if (res.ok) location.reload();
+  else alert('❌ Ошибка при обновлении подарка');
+});
+
+function openDeleteModal(giftId) {
+  document.getElementById('delete-gift-id').innerText = giftId;
+  selectedGift = giftId;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+async function confirmDelete() {
+  const res = await fetch(`/gifts/${encodeURIComponent(selectedGift)}?tg_id=${TG_ID}`, {
+    method: 'DELETE',
+    headers: { 'X-Token': TOKEN }
+  });
+  if (res.ok) location.reload();
+  else alert('❌ Ошибка при удалении подарка');
+}
+
+function openCreateModal() {
+  document.getElementById('createGiftForm').reset();
+  document.getElementById('createModal').style.display = 'flex';
+}
+function closeCreateModal() {
+  document.getElementById('createModal').style.display = 'none';
+}
+
+document.getElementById('createGiftForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  let expiry_time = document.getElementById('create-expiry_time').value;
+  expiry_time = expiry_time ? new Date(expiry_time).toISOString() : undefined;
+
+  const recipient = document.getElementById('create-recipient_tg_id').value;
+  const count = parseInt(document.getElementById('create-count').value, 10) || 1;
+
+  const payload = {
+    sender_tg_id: TG_ID,
+    selected_months: parseInt(document.getElementById('create-selected_months').value, 10),
+    tariff_id: parseInt(document.getElementById('create-tariff_id').value, 10),
+    max_usages: parseInt(document.getElementById('create-max_usages').value, 10) || 0,
+    gift_link: document.getElementById('create-gift_link').value || "",
+    is_used: document.getElementById('create-is_used').value === 'true',
+    is_unlimited: document.getElementById('create-is_unlimited').value === 'true'
+  };
+  if (expiry_time) payload.expiry_time = expiry_time;
+  if (recipient) payload.recipient_tg_id = parseInt(recipient, 10);
+
+  let success = true;
+  for (let i = 0; i < count; i++) {
+    const res = await fetch(`/gifts?tg_id=${TG_ID}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Token': TOKEN
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      success = false;
+      break;
+    }
+  }
+  if (success) location.reload();
+  else alert('❌ Ошибка при создании подарка');
+});
+
+document.getElementById('select-all-gifts').addEventListener('change', function() {
+  const checked = this.checked;
+  document.querySelectorAll('.gift-checkbox').forEach(cb => cb.checked = checked);
+});
+
+document.getElementById('delete-selected-gifts').addEventListener('click', async function() {
+  const selected = Array.from(document.querySelectorAll('.gift-checkbox:checked')).map(cb => cb.value);
+  if (selected.length === 0) {
+    alert('Выберите хотя бы один подарок для удаления.');
+    return;
+  }
+  if (!confirm(`Удалить выбранные подарки (${selected.length} шт.)?`)) return;
+  let success = true;
+  for (const giftId of selected) {
+    const res = await fetch(`/gifts/${encodeURIComponent(giftId)}?tg_id=${TG_ID}`, {
+      method: 'DELETE',
+      headers: { 'X-Token': TOKEN }
+    });
+    if (!res.ok) {
+      success = false;
+      break;
+    }
+  }
+  if (success) location.reload();
+  else alert('❌ Ошибка при массовом удалении');
+});
+</script>
+{% endblock %}

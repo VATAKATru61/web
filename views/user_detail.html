@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль пользователя {{ user.tg_id }} | FAST VPN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/users.css">
+<link rel="stylesheet" href="/static/css/user_detail.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>Профиль пользователя</h1>
+    <p class="page-subtitle">ID: {{ user.tg_id }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="user-profile-flex">
+    <div class="user-info-card">
+        <h2>{{ user.first_name or "Без имени" }}
+            {% if user.last_name %} {{ user.last_name }}{% endif %}
+        </h2>
+        <p><b>Telegram ID:</b> {{ user.tg_id }}</p>
+        <p><b>Username:</b> @{{ user.username or "—" }}</p>
+        <p><b>Дата регистрации:</b> {{ user.created_at or "—" }}</p>
+        <p><b>Последняя активность:</b> {{ user.last_active or "—" }}</p>
+        <div class="user-actions">
+            <a href="/users" class="btn btn-sm btn-secondary">← Назад</a>
+        </div>
+    </div>
+    <div class="user-mini-cards-grid">
+        <div class="user-mini-card">
+            <div class="mini-title">🔑 Подписок</div>
+            <div class="mini-value">{{ subscriptions|length }}</div>
+            <div class="mini-last">
+                <span><b>Trial:</b> {{ user.trial }}</span>
+            </div>
+            {% if subscriptions and subscriptions|length > 0 %}
+            <div class="mini-last">
+                Последняя:
+                <span title="{{ subscriptions[-1].expiry_time }}">
+                    {{ subscriptions[-1].key[:6] ~ '...' if subscriptions[-1].key else '' }}
+                </span>
+                                    <a href="#subs-table" class="btn-view" title="К подпискам">
+                        <i class="fas fa-arrow-right"></i>
+                        Перейти
+                    </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="user-mini-card">
+            <div class="mini-title">🎁 Подарков</div>
+            <div class="mini-value">{{ gifts|length }}</div>
+            {% if gifts and gifts|length > 0 %}
+            <div class="mini-last">
+                Последний:
+                <span title="{{ gifts[-1].created_at }}">{{ gifts[-1].gift_id }}</span>
+                                    <a href="#gifts-table" class="btn-view" title="К подаркам">
+                        <i class="fas fa-arrow-right"></i>
+                        Перейти
+                    </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="user-mini-card">
+            <div class="mini-title">💳 Платежей</div>
+            <div class="mini-value">{{ payments|length }}</div>
+            {% if payments and payments|length > 0 %}
+            <div class="mini-last">
+                Последний:
+                <span title="{{ payments[-1].created_at }}">{{ payments[-1].amount }}₽</span>
+                                    <a href="#payments-table" class="btn-view" title="К платежам">
+                        <i class="fas fa-arrow-right"></i>
+                        Перейти
+                    </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="user-mini-card">
+            <div class="mini-title">👥 Рефералов</div>
+            <div class="mini-value">{{ referrals|length }}</div>
+            {% if referrals and referrals|length > 0 %}
+            <div class="mini-last">
+                Последний:
+                <span title="{{ referrals[-1].referred_tg_id }}">{{ referrals[-1].referred_tg_id }}</span>
+                                    <a href="/users/{{ referrals[-1].referred_tg_id }}" class="btn-view" title="К рефералу">
+                        <i class="fas fa-arrow-right"></i>
+                        Перейти
+                    </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="user-section">
+    <h3>Платежи</h3>
+    {% if payments and payments|length > 0 %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr><th>ID</th><th>Сумма</th><th>Дата</th><th>Статус</th></tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.id }}</td>
+                    <td>{{ payment.amount }}</td>
+                    <td>{{ payment.created_at }}</td>
+                    <td>{{ payment.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-text">Нет платежей</p>
+    {% endif %}
+</div>
+
+<div class="user-section">
+    <h3>Подписки</h3>
+    {% if subscriptions and subscriptions|length > 0 %}
+    <div class="table-container">
+        <table class="data-table" id="subs-table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Email</th><th>Ключ</th><th>Тариф</th>
+                    <th>Начало</th><th>Окончание</th><th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subscriptions %}
+                <tr>
+                    <td>{{ sub.client_id }}</td>
+                    <td>{{ sub.email }}</td>
+                    <td>{{ sub.key }}</td>
+                    <td>{{ sub.tariff_id }}</td>
+                    <td>{{ sub.created_at }}</td>
+                    <td>{{ sub.expiry_time }}</td>
+                    <td>
+                        {% if sub.is_frozen %}
+                        <span class="status-frozen">Заморожена</span>
+                        {% else %}
+                        <span class="status-active">Активна</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-text">Нет подписок</p>
+    {% endif %}
+</div>
+
+<div class="user-section">
+    <h3>Рефералы</h3>
+    {% if referrals and referrals|length > 0 %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Реферал (tg_id)</th><th>Кто пригласил</th><th>Награда</th><th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ref in referrals %}
+                <tr>
+                    <td>{{ ref.referred_tg_id }}</td>
+                    <td>{{ ref.referrer_tg_id }}</td>
+                    <td>
+                        {% if ref.reward_issued %}
+                        <span class="status-active">Да</span>
+                        {% else %}
+                        <span class="status-frozen">Нет</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-text">Нет рефералов</p>
+    {% endif %}
+</div>
+
+<div class="user-section">
+    <h3>Подарки</h3>
+    {% if gifts and gifts|length > 0 %}
+    <div class="table-container">
+        <table class="data-table" id="gifts-table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Отправитель</th><th>Получатель</th><th>Месяцы</th>
+                    <th>Окончание</th><th>Ссылка</th><th>Исп.</th><th>Безлимит</th>
+                    <th>Макс.</th><th>Тариф</th><th>Создан</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gift in gifts %}
+                <tr>
+                    <td>{{ gift.gift_id }}</td>
+                    <td>{{ gift.sender_tg_id }}</td>
+                    <td>{{ gift.recipient_tg_id }}</td>
+                    <td>{{ gift.selected_months }}</td>
+                    <td>{{ gift.expiry_time }}</td>
+                    <td>{{ gift.gift_link }}</td>
+                    <td>{{ gift.is_used }}</td>
+                    <td>{{ gift.is_unlimited }}</td>
+                    <td>{{ gift.max_usages }}</td>
+                    <td>{{ gift.tariff_id }}</td>
+                    <td>{{ gift.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-text">Нет подарков</p>
+    {% endif %}
+</div>
+
+<div id="editUserModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Редактировать пользователя</h2>
+        <form id="editUserForm" onsubmit="return submitEditUserForm(event)">
+            <input type="hidden" id="edit-tg_id">
+            <div class="form-group">
+                <label for="edit-first_name">Имя</label>
+                <input type="text" id="edit-first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-username">Username</label>
+                <input type="text" id="edit-username">
+            </div>
+            <div class="form-group">
+                <label for="edit-balance">Баланс</label>
+                <input type="number" id="edit-balance" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="edit-trial">Trial</label>
+                <input type="checkbox" id="edit-trial">
+            </div>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const ADMIN_TG_ID = "{{ admin_tg_id }}";
+  const TOKEN       = "{{ token }}";
+
+  function openEditModal(user) {
+    document.getElementById('edit-tg_id').value      = user.tg_id;
+    document.getElementById('edit-first_name').value = user.first_name || '';
+    document.getElementById('edit-username').value   = user.username   || '';
+    document.getElementById('edit-balance').value    = user.balance    || 0;
+    document.getElementById('edit-trial').checked    = user.trial      || false;
+    document.getElementById('editUserModal').style.display = 'block';
+  }
+
+  function closeEditModal() {
+    document.getElementById('editUserModal').style.display = 'none';
+  }
+
+  async function submitEditUserForm(event) {
+    event.preventDefault();
+    const tg_id = document.getElementById('edit-tg_id').value;
+    const payload = {
+      first_name: document.getElementById('edit-first_name').value,
+      username:   document.getElementById('edit-username').value,
+      balance:    parseFloat(document.getElementById('edit-balance').value),
+      trial:      document.getElementById('edit-trial').checked
+    };
+
+    const res = await fetch(
+      `/users/${encodeURIComponent(tg_id)}?tg_id=${ADMIN_TG_ID}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Token': TOKEN
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    if (res.ok) {
+      location.reload();
+    } else {
+      const err = await res.json().catch(()=>({}));
+      alert('Ошибка при обновлении: ' + (err.detail||res.status));
+    }
+  }
+
+  function openDeleteModal(tg_id) {
+    if (!confirm('Удалить пользователя?')) return;
+    deleteUser(tg_id);
+  }
+
+  async function deleteUser(tg_id) {
+    const res = await fetch(
+      `/users/${encodeURIComponent(tg_id)}?tg_id=${ADMIN_TG_ID}`, {
+        method: 'DELETE',
+        headers: { 'X-Token': TOKEN }
+      }
+    );
+    if (res.ok) window.location.href = '/users';
+    else {
+      const err = await res.json().catch(()=>({}));
+      alert('Ошибка при удалении: ' + (err.detail||res.status));
+    }
+  }
+
+  async function deleteReferral(referred_tg_id) {
+    if (!confirm('Удалить реферала?')) return;
+
+    const referrer_tg_id = "{{ user.tg_id }}";
+    const qs = new URLSearchParams({
+      referrer_tg_id,
+      referred_tg_id,
+      tg_id: ADMIN_TG_ID
+    }).toString();
+
+    const res = await fetch(
+      `/api/referrals/one?${qs}`, 
+      {
+        method: 'DELETE',
+        headers: { 'X-Token': TOKEN }
+      }
+    );
+
+    if (res.ok) {
+      location.reload();
+    } else {
+      const err = await res.json().catch(()=>({}));
+      alert('Ошибка при удалении реферала: ' + (err.detail||err.error||res.status));
+    }
+  }
+</script>
+{% endblock %}

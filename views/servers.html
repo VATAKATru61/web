@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Серверы | FAST VPN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/servers.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-server"></i>
+        Серверы
+    </h1>
+    <p class="page-subtitle">Всего: {{ total_servers }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+  <div class="search-container">
+    <input type="text" id="serverSearchInput" class="search-input" placeholder="🔍 Поиск по имени, кластеру или URL..." />
+    <button onclick="openCreateModal()" class="btn btn-sm">Создать сервер</button>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th><th>Имя</th><th>Кластер</th><th>URL API</th><th>Ссылка</th>
+        <th>Inbound ID</th><th>Панель</th><th>Лимит ключей</th>
+        <th>Группа тарифов</th><th>Вкл</th><th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for server in servers %}
+      <tr>
+        <td>{{ server.id }}</td>
+        <td>{{ server.server_name }}</td>
+        <td>{{ server.cluster_name }}</td>
+        <td>{{ server.api_url }}</td>
+        <td>{{ server.subscription_url or '—' }}</td>
+        <td>{{ server.inbound_id }}</td>
+                  <td>{{ server.panel_type }}</td>
+          <td>{{ server.max_keys or 0 }}</td>
+          <td>{{ server.tariff_group or '—' }}</td>
+          <td>
+              {% if server.enabled %}
+                  <span class="btn-status-active">
+                      <i class="fas fa-check"></i>
+                      Включен
+                  </span>
+              {% else %}
+                  <span class="btn-status-inactive">
+                      <i class="fas fa-times"></i>
+                      Отключен
+                  </span>
+              {% endif %}
+          </td>
+          <td class="table-cell-actions">
+              <button onclick='openEditModal({{ server|tojson }})' class="btn-edit">
+                  <i class="fas fa-edit"></i>
+                  Редактировать
+              </button>
+              <button onclick='openDeleteModal("{{ server.server_name }}")' class="btn-delete">
+                  <i class="fas fa-trash"></i>
+                  Удалить
+              </button>
+          </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal" id="createModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Создать сервер</h2>
+      <button class="close" onclick="closeCreateModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="createServerForm">
+        <div class="form-group">
+          <label>Имя сервера:</label>
+          <input type="text" id="create-server_name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Кластер:</label>
+          <input type="text" id="create-cluster_name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>API URL:</label>
+          <input type="text" id="create-api_url" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Ссылка подписки:</label>
+          <input type="text" id="create-subscription_url" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Inbound ID:</label>
+          <input type="text" id="create-inbound_id" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Тип панели:</label>
+          <select id="create-panel_type" class="form-control">
+            <option value="3x-ui">3x-ui</option>
+            <option value="remnawave">Remnawave</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Лимит ключей:</label>
+          <input type="number" id="create-max_keys" class="form-control" min="0">
+        </div>
+        <div class="form-group">
+          <label>Группа тарифов:</label>
+          <select id="create-tariff_group" class="form-control">
+            <option value="">— без группы —</option>
+            {% for code in group_codes %}
+            <option value="{{ code }}">{{ code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Статус:</label>
+          <select id="create-enabled" class="form-control">
+            <option value="true">Включён</option>
+            <option value="false">Отключён</option>
+          </select>
+        </div>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Создать
+          </button>
+          <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Редактировать сервер</h2>
+      <button class="close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="editServerForm">
+        <input type="hidden" id="edit-original_name">
+        <div class="form-group">
+          <label>Имя сервера:</label>
+          <input type="text" id="edit-server_name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Кластер:</label>
+          <input type="text" id="edit-cluster_name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>API URL:</label>
+          <input type="text" id="edit-api_url" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Ссылка подписки:</label>
+          <input type="text" id="edit-subscription_url" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Inbound ID:</label>
+          <input type="text" id="edit-inbound_id" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Тип панели:</label>
+          <select id="edit-panel_type" class="form-control">
+            <option value="3x-ui">3x-ui</option>
+            <option value="remnawave">Remnawave</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Лимит ключей:</label>
+          <input type="number" id="edit-max_keys" class="form-control" min="0">
+        </div>
+        <div class="form-group">
+          <label>Группа тарифов:</label>
+          <select id="edit-tariff_group" class="form-control">
+            <option value="">— без группы —</option>
+            {% for code in group_codes %}
+            <option value="{{ code }}">{{ code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Статус:</label>
+          <select id="edit-enabled" class="form-control">
+            <option value="true">Включён</option>
+            <option value="false">Отключён</option>
+          </select>
+        </div>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Сохранить
+          </button>
+          <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="deleteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Подтверждение удаления</h2>
+      <button class="close" onclick="closeDeleteModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Вы уверены, что хотите удалить сервер <strong><span id="delete-server-id"></span></strong>?</p>
+      <p class="text-muted">Это действие нельзя отменить.</p>
+    </div>
+    <div class="modal-footer">
+      <button onclick="confirmDelete()" class="btn btn-danger">
+        <i class="fas fa-trash"></i>
+        Да, удалить
+      </button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary">
+        <i class="fas fa-times"></i>
+        Отмена
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TG_ID = "{{ tg_id }}", TOKEN = "{{ token }}";
+
+function openCreateModal(){ document.getElementById('createModal').style.display='flex'; }
+function closeCreateModal(){ document.getElementById('createModal').style.display='none'; }
+document.getElementById('createServerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const p=id=>document.getElementById(id).value;
+  const payload={
+    server_name:    p('create-server_name'),
+    cluster_name:   p('create-cluster_name')||null,
+    api_url:        p('create-api_url')||null,
+    subscription_url:p('create-subscription_url')||null,
+    inbound_id:     p('create-inbound_id')||null,
+    panel_type:     p('create-panel_type'),
+    max_keys:       parseInt(p('create-max_keys'),10)||0,
+    tariff_group:   p('create-tariff_group'),
+    enabled:        p('create-enabled')==='true'
+  };
+  const res=await fetch(`/servers?tg_id=${TG_ID}`,{
+    method:'POST',headers:{'Content-Type':'application/json','X-Token':TOKEN},body:JSON.stringify(payload)
+  });
+  res.ok?location.reload():alert(`❌ ${(await res.json()).error}`);
+});
+
+let selectedServerName=null;
+function openEditModal(s){
+  selectedServerName=s.server_name;
+  document.getElementById('edit-original_name').value=s.server_name;
+  for(const f of ['server_name','cluster_name','api_url','subscription_url','inbound_id','panel_type','max_keys','enabled']){
+    const el=document.getElementById('edit-'+f);
+    if(el) el.value=(typeof s[f]==='boolean'?s[f].toString():(s[f]||''));
+  }
+  document.getElementById('edit-tariff_group').value=s.tariff_group||'';
+  document.getElementById('editModal').style.display='flex';
+}
+function closeEditModal(){ document.getElementById('editModal').style.display='none'; }
+document.getElementById('editServerForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const p=id=>document.getElementById(id).value;
+  const payload={
+    server_name:    p('edit-server_name'),
+    cluster_name:   p('edit-cluster_name')||null,
+    api_url:        p('edit-api_url')||null,
+    subscription_url:p('edit-subscription_url')||null,
+    inbound_id:     p('edit-inbound_id')||null,
+    panel_type:     p('edit-panel_type'),
+    max_keys:       parseInt(p('edit-max_keys'),10)||0,
+    tariff_group:   p('edit-tariff_group'),
+    enabled:        p('edit-enabled')==='true'
+  };
+  const res=await fetch(`/servers/${encodeURIComponent(selectedServerName)}?tg_id=${TG_ID}`,{
+    method:'PATCH',headers:{'Content-Type':'application/json','X-Token':TOKEN},body:JSON.stringify(payload)
+  });
+  res.ok?location.reload():alert(`❌ ${(await res.json()).error}`);
+});
+
+function openDeleteModal(n){selectedServerName=n;document.getElementById('delete-server-id').innerText=n;document.getElementById('deleteModal').style.display='flex';}
+function closeDeleteModal(){document.getElementById('deleteModal').style.display='none';}
+async function confirmDelete(){
+  const res=await fetch(`/servers/${encodeURIComponent(selectedServerName)}?tg_id=${TG_ID}`,{method:'DELETE',headers:{'X-Token':TOKEN}});
+  res.ok?location.reload():alert(`❌ ${(await res.json()).error}`);
+}
+
+document.getElementById('serverSearchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.data-table tbody tr').forEach(row => {
+    const cells = Array.from(row.cells).slice(0, -1);
+    row.style.display = cells.some(td => td.textContent.toLowerCase().includes(q)) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}

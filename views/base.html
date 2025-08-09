@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FAST VPN{% endblock %}</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/button.css">
+    <link rel="stylesheet" href="/static/css/table.css">
+    <link rel="stylesheet" href="/static/css/modals_forms.css">
+    
+    <!-- Mobile optimization CSS -->
+    <link rel="stylesheet" href="/static/css/telegram-mobile.css">
+    <link rel="stylesheet" href="/static/css/table-mobile.css">
+    <link rel="stylesheet" href="/static/css/forms-mobile.css">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="FAST VPN - Современная панель управления">
+    <meta name="keywords" content="VPN, управление, панель, пользователи">
+    <meta name="author" content="FAST VPN">
+    
+    <!-- Theme color -->
+    <meta name="theme-color" content="#2563eb">
+    
+    <!-- Apple touch icon -->
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">
+                    <i class="fas fa-robot"></i>
+                    FAST VPN
+                </h1>
+                <p class="sidebar-subtitle">Панель управления</p>
+            </div>
+            
+            <nav class="nav-menu">
+                <ul>
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <span>Главная</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/users" class="nav-link {% if '/users' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-users"></i>
+                            <span>Пользователи</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/keys" class="nav-link {% if '/keys' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-key"></i>
+                            <span>Ключи</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/servers" class="nav-link {% if '/servers' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-server"></i>
+                            <span>Серверы</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/tariffs" class="nav-link {% if '/tariffs' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-tags"></i>
+                            <span>Тарифы</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/payments" class="nav-link {% if '/payments' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-credit-card"></i>
+                            <span>Платежи</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/coupons" class="nav-link {% if '/coupons' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-ticket-alt"></i>
+                            <span>Купоны</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/gifts" class="nav-link {% if '/gifts' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-gift"></i>
+                            <span>Подарки</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/referrals" class="nav-link {% if '/referrals' in request.url.path %}active{% endif %}">
+                            <i class="nav-icon fas fa-share-alt"></i>
+                            <span>Рефералы</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">Администратор</div>
+                        <div class="user-role">Admin</div>
+                    </div>
+                </div>
+                <div class="sidebar-actions">
+                    <a href="/logout" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </a>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenuSimple()" ontouchend="toggleMobileMenuSimple()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Page Header -->
+            {% block header %}
+            <div class="page-header">
+                <h1>Добро пожаловать</h1>
+                <p class="page-subtitle">Панель управления FAST VPN</p>
+            </div>
+            {% endblock %}
+            
+            <!-- Main Content Area -->
+            <div class="content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Загрузка...</p>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/telegram-mobile.js"></script>
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Простая функция для кнопки меню
+        function toggleMobileMenuSimple() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                if (sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                    console.log('Menu closed');
+                } else {
+                    sidebar.classList.add('open');
+                    console.log('Menu opened');
+                }
+            } else {
+                console.log('Sidebar not found');
+            }
+        }
+        
+        // Mobile menu toggle - упрощенная версия
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+                console.log('Menu toggled, classes:', sidebar.className);
+            }
+        }
+        
+        // Добавляем обработчики для кнопки меню
+        const menuToggle = document.getElementById('mobileMenuToggle');
+        if (menuToggle) {
+            // Клик
+            menuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMobileMenu();
+            });
+            
+            // Touch события для мобильных
+            menuToggle.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMobileMenu();
+            });
+            
+            // Дополнительный обработчик через onclick
+            menuToggle.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMobileMenu();
+                return false;
+            };
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('mobileMenuToggle');
+            
+            if (sidebar && toggle && !sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="toast-icon fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}"></i>
+                    <span class="toast-message">${message}</span>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        // Loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            showToast('Произошла ошибка. Пожалуйста, попробуйте снова.', 'error');
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Form validation helper
+        function validateForm(formElement) {
+            const inputs = formElement.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('error');
+                    isValid = false;
+                } else {
+                    input.classList.remove('error');
+                }
+            });
+            
+            return isValid;
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+    
+    <style>
+        /* Additional styles for components not in CSS files */
+        .sidebar-footer {
+            padding: 1rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+        
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        .sidebar-actions {
+            padding: 0 2rem;
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: добавляем z-index и pointer-events */
+            z-index: 99999 !important;
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            position: relative !important;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .toast {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .toast.toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .toast.toast-error {
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .toast.toast-warning {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .toast.toast-info {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+        
+        .toast.toast-success .toast-icon {
+            color: var(--success-color);
+        }
+        
+        .toast.toast-error .toast-icon {
+            color: var(--error-color);
+        }
+        
+        .toast.toast-warning .toast-icon {
+            color: var(--warning-color);
+        }
+        
+        .toast.toast-info .toast-icon {
+            color: var(--primary-color);
+        }
+        
+        .toast-message {
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+        }
+        
+        .toast-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+        }
+        
+        .loading-spinner {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .content-wrapper {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block !important;
+                /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: убираем все конфликтующие стили */
+                position: fixed !important;
+                top: 1rem !important;
+                right: 1rem !important;
+                z-index: 99999 !important;
+                background: white !important;
+                border: 2px solid #007bff !important;
+                border-radius: 8px !important;
+                width: 56px !important;
+                height: 56px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+                pointer-events: auto !important;
+                touch-action: manipulation !important;
+            }
+            
+            .mobile-menu-toggle:hover,
+            .mobile-menu-toggle:active {
+                background: #007bff !important;
+                color: white !important;
+            }
+            
+            .toast-container {
+                right: 1rem;
+                left: 1rem;
+            }
+            
+            .toast {
+                min-width: auto;
+            }
+        }
+    </style>
+</body>
+</html>

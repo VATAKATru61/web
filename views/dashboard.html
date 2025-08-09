@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Главная | FAST VPN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/dashboard.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-tachometer-alt"></i>
+        Главная панель
+    </h1>
+    <p class="page-subtitle">Обзор системы и основные метрики</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ stats.total_users or 0 }}</div>
+            <div class="stat-label">Всего пользователей</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up stat-change-icon"></i>
+                +{{ stats.users_today or 0 }} сегодня
+            </div>
+        </div>
+        
+        <div class="stat-card success">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ stats.total_subs or 0 }}</div>
+            <div class="stat-label">Активных подписок</div>
+            <div class="stat-change neutral">
+                <i class="fas fa-clock stat-change-icon"></i>
+                {{ stats.expired_subs or 0 }} истекших
+            </div>
+        </div>
+        
+        <div class="stat-card warning">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ "%.2f"|format(stats.payments_sum or 0) }}₽</div>
+            <div class="stat-label">Общий доход</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up stat-change-icon"></i>
+                +{{ "%.2f"|format(stats.payments_sum_today or 0) }}₽ сегодня
+            </div>
+        </div>
+        
+        <div class="stat-card info">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ stats.servers_available or 0 }}</div>
+            <div class="stat-label">Доступных серверов</div>
+            <div class="stat-change neutral">
+                <i class="fas fa-power-off stat-change-icon"></i>
+                {{ stats.servers_disabled or 0 }} отключено
+            </div>
+        </div>
+        
+        <div class="stat-card danger">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ stats.total_refs or 0 }}</div>
+            <div class="stat-label">Рефералов</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up stat-change-icon"></i>
+                +{{ stats.refs_today or 0 }} сегодня
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+            </div>
+            <div class="stat-value">{{ stats.total_gifts or 0 }}</div>
+            <div class="stat-label">Подарков</div>
+            <div class="stat-change neutral">
+                <i class="fas fa-check stat-change-icon"></i>
+                {{ stats.gifts_used or 0 }} использовано
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Container -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Рост пользователей</h3>
+                    <p class="chart-subtitle">За последние 30 дней</p>
+                </div>
+            </div>
+            <div class="chart-content">
+                <canvas id="usersChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Активность подписок</h3>
+                    <p class="chart-subtitle">Новые подписки по дням</p>
+                </div>
+            </div>
+            <div class="chart-content">
+                <canvas id="subscriptionsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+
+    
+
+    
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart data from backend
+    const usersData = {{ stats.users_growth_month|tojson if stats.users_growth_month else '[]' }};
+    const subsData = {{ stats.subs_growth_month|tojson if stats.subs_growth_month else '[]' }};
+    const dates = {{ stats.last_30_days|tojson if stats.last_30_days else '[]' }};
+    
+                        // Users Chart
+     const usersChart = new Chart(document.getElementById('usersChart'), {
+         type: 'line',
+         data: {
+             labels: dates,
+             datasets: [{
+                 label: 'Новые пользователи',
+                 data: usersData,
+                 borderColor: '#2563eb',
+                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                 fill: true
+             }]
+         },
+         options: {
+             responsive: true,
+             maintainAspectRatio: false,
+             plugins: {
+                 legend: {
+                     display: false
+                 }
+             },
+             scales: {
+                 y: {
+                     beginAtZero: true,
+                     grid: {
+                         color: 'rgba(0, 0, 0, 0.1)'
+                     }
+                 },
+                 x: {
+                     grid: {
+                         display: false
+                     }
+                 }
+             },
+             elements: {
+                 line: {
+                     tension: 0.4
+                 },
+                 point: {
+                     radius: 4,
+                     hoverRadius: 6
+                 }
+             }
+         }
+     });
+     
+     // Subscriptions Chart
+     const subscriptionsChart = new Chart(document.getElementById('subscriptionsChart'), {
+         type: 'line',
+         data: {
+             labels: dates,
+             datasets: [{
+                 label: 'Новые подписки',
+                 data: subsData,
+                 borderColor: '#10b981',
+                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                 fill: true
+             }]
+         },
+         options: {
+             responsive: true,
+             maintainAspectRatio: false,
+             plugins: {
+                 legend: {
+                     display: false
+                 }
+             },
+             scales: {
+                 y: {
+                     beginAtZero: true,
+                     grid: {
+                         color: 'rgba(0, 0, 0, 0.1)'
+                     }
+                 },
+                 x: {
+                     grid: {
+                         display: false
+                     }
+                 }
+             },
+             elements: {
+                 line: {
+                     tension: 0.4
+                 },
+                 point: {
+                     radius: 4,
+                     hoverRadius: 6
+                 }
+             }
+         }
+     });
+    
+    // Chart filter functionality
+    document.querySelectorAll('.chart-filter').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from siblings
+            this.parentElement.querySelectorAll('.chart-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+                    // Remove active class from all buttons
+        document.querySelectorAll('.chart-filter-btn').forEach(btn => btn.classList.remove('active'));
+        
+        // Add active class to clicked button
+        this.classList.add('active');
+    });
+});
+    
+    // Activity filter functionality
+    document.querySelectorAll('.activity-filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from siblings
+            this.parentElement.querySelectorAll('.activity-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Filter activity items
+            const filter = this.textContent.toLowerCase();
+            filterActivityItems(filter);
+        });
+    });
+    
+              function filterActivityItems(filter) {
+         const items = document.querySelectorAll('.activity-item');
+         
+         items.forEach(item => {
+             if (filter === 'все') {
+                 item.style.display = 'flex';
+             } else {
+                 const badge = item.querySelector('.activity-badge');
+                 const badgeText = badge ? badge.textContent.toLowerCase() : '';
+                 
+                 // Проверяем соответствие фильтра
+                 let shouldShow = false;
+                 
+                 if (filter === 'пользователи' && badgeText.includes('пользователи')) {
+                     shouldShow = true;
+                 } else if (filter === 'платежи' && badgeText.includes('платежи')) {
+                     shouldShow = true;
+                 } else if (filter === 'системы' && (badgeText.includes('системы') || badgeText.includes('ключи'))) {
+                     shouldShow = true;
+                 }
+                 
+                 item.style.display = shouldShow ? 'flex' : 'none';
+             }
+         });
+     }
+    
+    // Auto-refresh dashboard data every 30 seconds
+    setInterval(() => {
+        // This would typically fetch fresh data from the server
+        console.log('Refreshing dashboard data...');
+    }, 30000);
+    
+    // Animate stat cards on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.5s ease-out';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+    });
+    
+    // Real-time updates simulation
+    function simulateRealTimeUpdates() {
+        const indicators = document.querySelectorAll('.status-indicator');
+        
+        indicators.forEach(indicator => {
+            // Simulate status changes
+            setInterval(() => {
+                const random = Math.random();
+                if (random < 0.1) {
+                    indicator.classList.add('warning');
+                    setTimeout(() => {
+                        indicator.classList.remove('warning');
+                    }, 2000);
+                }
+            }, 5000);
+        });
+    }
+    
+    // Initialize real-time updates
+    simulateRealTimeUpdates();
+</script>
+{% endblock %}

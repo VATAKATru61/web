@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}Пример мобильной таблицы | FAST VPN{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-mobile-alt"></i>
+        Пример мобильной таблицы
+    </h1>
+    <p class="page-subtitle">Демонстрация адаптивной таблицы с карточками</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">
+            <i class="fas fa-users"></i>
+            Пользователи
+        </h2>
+        <div class="table-actions">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Поиск пользователей...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Добавить
+            </button>
+        </div>
+    </div>
+    
+    <!-- Mobile sort controls (visible only on mobile) -->
+    <div class="mobile-sort-controls">
+        <button class="mobile-sort-btn" data-sort="name">Имя</button>
+        <button class="mobile-sort-btn" data-sort="email">Email</button>
+        <button class="mobile-sort-btn active asc" data-sort="created">Дата</button>
+        <button class="mobile-sort-btn" data-sort="status">Статус</button>
+    </div>
+    
+    <!-- Desktop table (hidden on mobile) -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" class="table-checkbox" id="selectAll">
+                </th>
+                <th class="sortable-header" data-sort="id">
+                    ID
+                    <i class="fas fa-sort"></i>
+                </th>
+                <th class="sortable-header" data-sort="name">
+                    Имя
+                    <i class="fas fa-sort"></i>
+                </th>
+                <th class="sortable-header" data-sort="email">
+                    Email
+                    <i class="fas fa-sort"></i>
+                </th>
+                <th class="sortable-header" data-sort="created">
+                    Дата регистрации
+                    <i class="fas fa-sort"></i>
+                </th>
+                <th class="sortable-header" data-sort="status">
+                    Статус
+                    <i class="fas fa-sort"></i>
+                </th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="checkbox" class="table-checkbox" value="1"></td>
+                <td class="table-cell-id">#1001</td>
+                <td>Иван Петров</td>
+                <td>ivan.petrov@example.com</td>
+                <td class="table-cell-date">15.01.2024</td>
+                <td><span class="table-cell-badge status-active">Активен</span></td>
+                <td class="table-cell-actions">
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="table-checkbox" value="2"></td>
+                <td class="table-cell-id">#1002</td>
+                <td>Анна Сидорова</td>
+                <td>anna.sidorova@example.com</td>
+                <td class="table-cell-date">14.01.2024</td>
+                <td><span class="table-cell-badge status-pending">Ожидает</span></td>
+                <td class="table-cell-actions">
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" class="table-checkbox" value="3"></td>
+                <td class="table-cell-id">#1003</td>
+                <td>Сергей Козлов</td>
+                <td>sergey.kozlov@example.com</td>
+                <td class="table-cell-date">13.01.2024</td>
+                <td><span class="table-cell-badge status-inactive">Неактивен</span></td>
+                <td class="table-cell-actions">
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Mobile cards (visible only on mobile) -->
+    <div class="mobile-table-cards">
+        <div class="mobile-card swipeable" data-id="1">
+            <div class="mobile-card-header">
+                <span class="mobile-card-id">#1001</span>
+                <span class="mobile-card-status status-active">Активен</span>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Имя</span>
+                    <span class="mobile-card-value">Иван Петров</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Email</span>
+                    <span class="mobile-card-value truncate">ivan.petrov@example.com</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Дата регистрации</span>
+                    <span class="mobile-card-value mobile-card-date">15.01.2024</span>
+                </div>
+            </div>
+            <div class="mobile-card-actions">
+                <button class="btn btn-sm btn-primary">
+                    <i class="fas fa-edit"></i>
+                    Изменить
+                </button>
+                <button class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Удалить
+                </button>
+            </div>
+            <div class="mobile-card-swipe-actions">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+        
+        <div class="mobile-card swipeable" data-id="2">
+            <div class="mobile-card-header">
+                <span class="mobile-card-id">#1002</span>
+                <span class="mobile-card-status status-pending">Ожидает</span>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Имя</span>
+                    <span class="mobile-card-value">Анна Сидорова</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Email</span>
+                    <span class="mobile-card-value truncate">anna.sidorova@example.com</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Дата регистрации</span>
+                    <span class="mobile-card-value mobile-card-date">14.01.2024</span>
+                </div>
+            </div>
+            <div class="mobile-card-actions">
+                <button class="btn btn-sm btn-primary">
+                    <i class="fas fa-edit"></i>
+                    Изменить
+                </button>
+                <button class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Удалить
+                </button>
+            </div>
+            <div class="mobile-card-swipe-actions">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+        
+        <div class="mobile-card swipeable" data-id="3">
+            <div class="mobile-card-header">
+                <span class="mobile-card-id">#1003</span>
+                <span class="mobile-card-status status-inactive">Неактивен</span>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Имя</span>
+                    <span class="mobile-card-value">Сергей Козлов</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Email</span>
+                    <span class="mobile-card-value truncate">sergey.kozlov@example.com</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Дата регистрации</span>
+                    <span class="mobile-card-value mobile-card-date">13.01.2024</span>
+                </div>
+            </div>
+            <div class="mobile-card-actions">
+                <button class="btn btn-sm btn-primary">
+                    <i class="fas fa-edit"></i>
+                    Изменить
+                </button>
+                <button class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Удалить
+                </button>
+            </div>
+            <div class="mobile-card-swipe-actions">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+        
+        <!-- Loading example -->
+        <div class="mobile-card loading">
+            <div class="mobile-card-header">
+                <span class="mobile-card-id">#1004</span>
+                <span class="mobile-card-status status-active">Активен</span>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Имя</span>
+                    <span class="mobile-card-value">Загрузка...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination">
+        <button class="pagination-btn" disabled>
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="pagination-btn active">1</button>
+        <button class="pagination-btn">2</button>
+        <button class="pagination-btn">3</button>
+        <button class="pagination-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    <!-- Bulk actions (mobile bottom sheet) -->
+    <div class="bulk-actions" id="bulkActions">
+        <div class="bulk-actions-count">
+            Выбрано: <span id="selectedCount">0</span> элементов
+        </div>
+        <div class="bulk-actions-buttons">
+            <button class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                Изменить
+            </button>
+            <button class="btn btn-warning">
+                <i class="fas fa-download"></i>
+                Экспорт
+            </button>
+            <button class="btn btn-danger">
+                <i class="fas fa-trash"></i>
+                Удалить
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile form example -->
+<div class="form-container" style="margin-top: 2rem;">
+    <div class="form-card">
+        <div class="form-header">
+            <h2 class="form-title">
+                <i class="fas fa-user-plus"></i>
+                Добавить пользователя
+            </h2>
+            <p class="form-subtitle">Заполните форму для создания нового пользователя</p>
+        </div>
+        
+        <form>
+            <div class="form-group">
+                <label for="userName">Имя пользователя</label>
+                <input type="text" class="form-control" id="userName" placeholder="Введите имя пользователя">
+            </div>
+            
+            <div class="form-group">
+                <label for="userEmail">Email</label>
+                <input type="email" class="form-control" id="userEmail" placeholder="user@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="userRole">Роль</label>
+                <select class="form-control" id="userRole">
+                    <option value="">Выберите роль</option>
+                    <option value="admin">Администратор</option>
+                    <option value="user">Пользователь</option>
+                    <option value="moderator">Модератор</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="userActive">
+                    <label class="form-check-label" for="userActive">
+                        Активный пользователь
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check form-switch">
+                    <input type="checkbox" class="form-check-input" id="userNotifications">
+                    <label class="form-check-label" for="userNotifications">
+                        Получать уведомления
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Сохранить
+                </button>
+                <button type="button" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Отмена
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Mobile table functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile sort controls
+    const sortBtns = document.querySelectorAll('.mobile-sort-btn');
+    sortBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const currentSort = this.getAttribute('data-sort');
+            
+            // Remove active class from all buttons
+            sortBtns.forEach(b => b.classList.remove('active', 'asc', 'desc'));
+            
+            // Add active class to clicked button
+            this.classList.add('active', 'asc');
+            
+            // Here you would implement actual sorting logic
+            console.log('Sort by:', currentSort);
+        });
+    });
+    
+    // Mobile card swipe functionality
+    const cards = document.querySelectorAll('.mobile-card.swipeable');
+    cards.forEach(card => {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        
+        card.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+        
+        card.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentX = e.touches[0].clientX;
+            const deltaX = currentX - startX;
+            
+            if (deltaX < -50) {
+                this.classList.add('swiped');
+            } else {
+                this.classList.remove('swiped');
+            }
+        });
+        
+        card.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+        
+        // Swipe action
+        const swipeAction = card.querySelector('.mobile-card-swipe-actions');
+        if (swipeAction) {
+            swipeAction.addEventListener('click', function() {
+                const cardId = card.getAttribute('data-id');
+                if (confirm('Удалить этот элемент?')) {
+                    card.remove();
+                }
+            });
+        }
+    });
+    
+    // Bulk actions
+    const checkboxes = document.querySelectorAll('.table-checkbox');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const selected = document.querySelectorAll('.table-checkbox:checked').length;
+            selectedCount.textContent = selected;
+            
+            if (selected > 0) {
+                bulkActions.classList.add('visible');
+            } else {
+                bulkActions.classList.remove('visible');
+            }
+        });
+    });
+    
+    // Select all functionality
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            const itemCheckboxes = document.querySelectorAll('.table-checkbox[value]');
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            
+            const selected = this.checked ? itemCheckboxes.length : 0;
+            selectedCount.textContent = selected;
+            
+            if (selected > 0) {
+                bulkActions.classList.add('visible');
+            } else {
+                bulkActions.classList.remove('visible');
+            }
+        });
+    }
+    
+    // Mobile search
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.mobile-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const inputs = form.querySelectorAll('.form-control[required]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                }
+            });
+            
+            if (isValid) {
+                alert('Форма отправлена успешно!');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

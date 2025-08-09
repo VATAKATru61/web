@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Тарифы | FAST VPN{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/tariffs.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-tags"></i>
+        Тарифы
+    </h1>
+    <p class="page-subtitle">Всего: {{ total_tariffs }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="search-container">
+        <input type="text" id="tariffSearchInput" class="search-input" placeholder="🔍 Поиск по названию, цене или группе..." />
+        <button onclick="openCreateModal()" class="btn btn-primary btn-sm">Создать тариф</button>
+    </div>
+
+    {% for group, group_items in tariffs|groupby('group_code') %}
+    <div class="tariff-group">
+        <div class="group-header">
+            <div class="group-title">
+                <i class="fas fa-layer-group"></i>
+                <span class="group-name">{{ group }}</span>
+                <span class="group-badge">{{ group_items|list|length }} тарифов</span>
+            </div>
+        </div>
+        {% for subgroup, items in group_items|groupby('subgroup_title') %}
+        <div class="subgroup-header">
+            <h3 class="subgroup-title">
+                <i class="fas fa-tag"></i>
+                {{ subgroup if subgroup and subgroup != group else 'Основная группа' }}
+            </h3>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Название</th><th>Дней</th><th>Трафик</th>
+                    <th>Устройства</th><th>Цена</th><th>Вкл</th><th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in items %}
+                <tr>
+                    <td>{{ t.id }}</td>
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.duration_days }}</td>
+                                          <td>{{ t.traffic_limit }}</td>
+                      <td>{{ t.device_limit }}</td>
+                      <td>{{ t.price_rub }}</td>
+                      <td>
+                          {% if t.is_active %}
+                              <span class="btn-status-active">
+                                  <i class="fas fa-check"></i>
+                                  Активен
+                              </span>
+                          {% else %}
+                              <span class="btn-status-inactive">
+                                  <i class="fas fa-times"></i>
+                                  Неактивен
+                              </span>
+                          {% endif %}
+                      </td>
+                      <td class="table-cell-actions">
+                          <button onclick='openEditModal({{ t|tojson }})' class="btn-edit">
+                              <i class="fas fa-edit"></i>
+                              Редактировать
+                          </button>
+                          <button onclick='openDeleteModal("{{ t.name }}")' class="btn-delete">
+                              <i class="fas fa-trash"></i>
+                              Удалить
+                          </button>
+                      </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal" id="createModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Создать тариф</h2>
+      <button class="close" onclick="closeCreateModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="createTariffForm">
+        {% for field,label,type,attrs in [
+            ('name','Название','text','required'),
+            ('group_code','Группа','text',''),
+            ('subgroup_title','Подгруппа','text',''),
+            ('duration_days','Дней','number','min=0'),
+            ('traffic_limit','Трафик (ГБ)','number','min=0'),
+            ('device_limit','Устройства','number','min=0'),
+            ('price_rub','Цена (₽)','number','step=0.01 min=0'),
+            ('is_active','Включён','select','')
+        ] %}
+          <div class="form-group">
+            <label>{{ label }}:</label>
+            {% if field=='is_active' %}
+              <select id="create-{{field}}" class="form-control">
+                <option value="true">Да</option>
+                <option value="false">Нет</option>
+              </select>
+            {% else %}
+              <input id="create-{{field}}" type="{{ type }}" class="form-control" {{ attrs }}>
+            {% endif %}
+          </div>
+        {% endfor %}
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Создать
+          </button>
+          <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Редактировать тариф</h2>
+      <button class="close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="editTariffForm">
+        <input type="hidden" id="edit-name-original">
+        {% for field,label,type,attrs in [
+            ('name','Название','text','required'),
+            ('group_code','Группа','text',''),
+            ('subgroup_title','Подгруппа','text',''),
+            ('duration_days','Дней','number','min=0'),
+            ('traffic_limit','Трафик (ГБ)','number','min=0'),
+            ('device_limit','Устройства','number','min=0'),
+            ('price_rub','Цена (₽)','number','step=0.01 min=0'),
+            ('is_active','Включён','select','')
+        ] %}
+          <div class="form-group">
+            <label>{{ label }}:</label>
+            {% if field=='is_active' %}
+              <select id="edit-{{field}}" class="form-control">
+                <option value="true">Да</option>
+                <option value="false">Нет</option>
+              </select>
+            {% else %}
+              <input id="edit-{{field}}" type="{{ type }}" class="form-control" {{ attrs }}>
+            {% endif %}
+          </div>
+        {% endfor %}
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Сохранить
+          </button>
+          <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="deleteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Подтверждение удаления</h2>
+      <button class="close" onclick="closeDeleteModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Вы уверены, что хотите удалить тариф <strong><span id="delete-tariff-name"></span></strong>?</p>
+      <p class="text-muted">Это действие нельзя отменить.</p>
+    </div>
+    <div class="modal-footer">
+      <button onclick="confirmDelete()" class="btn btn-danger">
+        <i class="fas fa-trash"></i>
+        Да, удалить
+      </button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary">
+        <i class="fas fa-times"></i>
+        Отмена
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TG_ID = "{{ tg_id }}";
+  const TOKEN = "{{ token }}";
+
+  function openCreateModal(){ document.getElementById('createModal').style.display='flex'; }
+  function closeCreateModal(){ document.getElementById('createModal').style.display='none'; }
+  document.getElementById('createTariffForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const p = id => document.getElementById(id).value;
+    const payload = {
+      name:           p('create-name'),
+      group_code:     p('create-group_code')||null,
+      subgroup_title: p('create-subgroup_title')||null,
+      duration_days:  parseInt(p('create-duration_days'))||null,
+      traffic_limit:  parseInt(p('create-traffic_limit'))||null,
+      device_limit:   parseInt(p('create-device_limit'))||null,
+      price_rub:      parseFloat(p('create-price_rub'))||null,
+      is_active:      p('create-is_active')==='true'
+    };
+    const res = await fetch(`/tariffs?tg_id=${TG_ID}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Token':TOKEN},
+      body: JSON.stringify(payload)
+    });
+    res.ok ? location.reload() : alert(`❌ ${(await res.json()).error}`);
+  });
+
+  let currentName = null;
+  function openEditModal(tariff){
+    currentName = tariff.name;
+    document.getElementById('edit-name-original').value = tariff.name;
+    Object.keys(tariff).forEach(f => {
+      const el = document.getElementById('edit-'+f);
+      if (!el) return;
+      el.value = (typeof tariff[f] === 'boolean') ? tariff[f].toString() : tariff[f] ?? '';
+    });
+    document.getElementById('editModal').style.display='flex';
+  }
+  function closeEditModal(){ document.getElementById('editModal').style.display='none'; }
+  document.getElementById('editTariffForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const p = id => document.getElementById(id).value;
+    const payload = {
+      name:           p('edit-name'),
+      group_code:     p('edit-group_code')||null,
+      subgroup_title: p('edit-subgroup_title')||null,
+      duration_days:  parseInt(p('edit-duration_days'))||null,
+      traffic_limit:  parseInt(p('edit-traffic_limit'))||null,
+      device_limit:   parseInt(p('edit-device_limit'))||null,
+      price_rub:      parseFloat(p('edit-price_rub'))||null,
+      is_active:      p('edit-is_active')==='true'
+    };
+    const res = await fetch(
+      `/tariffs/${encodeURIComponent(currentName)}?tg_id=${TG_ID}`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','X-Token':TOKEN},
+      body: JSON.stringify(payload)
+    });
+    res.ok ? location.reload() : alert(`❌ ${(await res.json()).error}`);
+  });
+
+  function openDeleteModal(name){
+    currentName = name;
+    document.getElementById('delete-tariff-name').textContent = name;
+    document.getElementById('deleteModal').style.display='flex';
+  }
+  function closeDeleteModal(){ document.getElementById('deleteModal').style.display='none'; }
+  async function confirmDelete(){
+    const res = await fetch(`/tariffs/${encodeURIComponent(currentName)}?tg_id=${TG_ID}`, {
+      method:'DELETE', headers:{'X-Token':TOKEN}
+    });
+    res.ok ? location.reload() : alert(`❌ ${(await res.json()).error}`);
+  }
+
+  document.getElementById('tariffSearchInput').addEventListener('input', function(){
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.data-table tbody tr').forEach(r => {
+      r.style.display = Array.from(r.cells).some(td=>td.textContent.toLowerCase().includes(q)) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

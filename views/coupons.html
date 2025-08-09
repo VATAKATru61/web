@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Купоны | FAST VPN{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/coupons.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-ticket-alt"></i>
+        Купоны
+    </h1>
+    <p class="page-subtitle">Всего: {{ total_coupons }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="search-container">
+        <input type="text" id="couponSearchInput" class="search-input" placeholder="🔍 Поиск по коду или скидке..." />
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="openCreateModal()" class="btn btn-sm btn-success">Создать купон</button>
+            <button class="btn btn-sm btn-danger" id="delete-selected-coupons">Удалить выбранные</button>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all-coupons"></th>
+                <th>ID</th>
+                <th>Купон</th>
+                <th>Сумма/Дней</th>
+                <th>Лимит</th>
+                <th>Использовано</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for coupon in coupons %}
+            <tr>
+                <td><input type="checkbox" class="coupon-select" data-coupon-code="{{ coupon.code }}"></td>
+                <td>{{ coupon.id }}</td>
+                <td>{{ coupon.code }}</td>
+                <td>
+                    {% if coupon.amount %}
+                        {{ coupon.amount }}
+                    {% else %}
+                        {{ coupon.days }}
+                    {% endif %}
+                </td>
+                <td>{{ coupon.usage_limit }}</td>
+                <td>{{ coupon.used_count }}</td>
+                <td class="table-cell-actions">
+                    <button onclick='openEditModal(JSON.parse(this.dataset.coupon))' data-coupon='{{ coupon | tojson | safe }}' class="btn-edit">
+                        <i class="fas fa-edit"></i>
+                        Редактировать
+                    </button>
+                    <button onclick='openDeleteModal("{{ coupon.code }}")' class="btn-delete">
+                        <i class="fas fa-trash"></i>
+                        Удалить
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal" id="createModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Создать купон</h2>
+            <button class="close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="createCouponForm">
+                <div class="form-group">
+                    <label>Код купона:</label>
+                    <input type="text" id="create-code" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Тип купона:</label>
+                    <select id="create-type" class="form-control">
+                        <option value="amount">Сумма</option>
+                        <option value="days">Дней</option>
+                    </select>
+                </div>
+                <div class="form-group" id="create-amount-group">
+                    <label>Сумма (₽):</label>
+                    <input type="number" id="create-amount" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group" id="create-days-group" style="display:none;">
+                    <label>Количество дней:</label>
+                    <input type="number" id="create-days" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Лимит использований:</label>
+                    <input type="number" id="create-usage_limit" class="form-control" min="1" value="1">
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label>Ссылка:</label>
+                    <input type="text" id="create-link" class="form-control">
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Создать
+                    </button>
+                    <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Редактировать купон</h2>
+            <button class="close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editCouponForm">
+                <input type="hidden" id="edit-original_code">
+                <input type="hidden" id="edit-id">
+
+                <div class="form-group">
+                    <label>Код купона:</label>
+                    <input type="text" id="edit-code" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Тип купона:</label>
+                    <select id="edit-type" class="form-control">
+                        <option value="amount">Сумма</option>
+                        <option value="days">Дней</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edit-amount-group">
+                    <label>Сумма (₽):</label>
+                    <input type="number" id="edit-amount" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group" id="edit-days-group">
+                    <label>Количество дней:</label>
+                    <input type="number" id="edit-days" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Лимит использований:</label>
+                    <input type="number" id="edit-usage_limit" class="form-control" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка:</label>
+                    <input type="text" id="edit-link" class="form-control">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Сохранить
+                    </button>
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Подтверждение удаления</h2>
+            <button class="close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Вы уверены, что хотите удалить купон <strong><span id="delete-coupon-id"></span></strong>?</p>
+            <p class="text-muted">Это действие нельзя отменить.</p>
+        </div>
+        <div class="modal-footer">
+            <button onclick="confirmDelete()" class="btn btn-danger">
+                <i class="fas fa-trash"></i>
+                Да, удалить
+            </button>
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Отмена
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TG_ID = "{{ tg_id }}";
+    const TOKEN = "{{ token }}";
+
+    // Create
+    function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
+    function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
+    document.getElementById('create-type').addEventListener('change', function() {
+        const t = this.value;
+        document.getElementById('create-amount-group').style.display = t==='amount' ? 'block':'none';
+        document.getElementById('create-days-group').style.display = t==='days' ? 'block':'none';
+    });
+    document.getElementById('createCouponForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const p = id=>document.getElementById(id).value;
+        const payload = { code: p('create-code'), usage_limit: parseInt(p('create-usage_limit'),10), link: p('create-link') };
+        if (p('create-type')==='amount') payload.amount=parseFloat(p('create-amount'));
+        else payload.days=parseInt(p('create-days'),10);
+        const res=await fetch(`/coupons?tg_id=${TG_ID}`,{ method:'POST', headers:{'Content-Type':'application/json','X-Token':TOKEN}, body:JSON.stringify(payload) });
+        res.ok?location.reload():alert(`❌ ${(await res.json()).error}`);
+    });
+
+    let selectedCouponCode=null;
+    function openEditModal(coupon){
+        selectedCouponCode=coupon.code;
+        document.getElementById('edit-original_code').value=coupon.code;
+        document.getElementById('edit-id').value=coupon.id;
+        document.getElementById('edit-code').value=coupon.code;
+        document.getElementById('edit-usage_limit').value=coupon.usage_limit;
+        document.getElementById('edit-link').value=coupon.link;
+        document.getElementById('edit-type').value=coupon.amount? 'amount':'days';
+        document.getElementById('edit-amount-group').style.display=coupon.amount? 'block':'none';
+        document.getElementById('edit-days-group').style.display=coupon.days? 'block':'none';
+        document.getElementById('edit-amount').value=coupon.amount||'';
+        document.getElementById('edit-days').value=coupon.days||'';
+        document.getElementById('editModal').style.display='flex';
+    }
+    function closeEditModal(){ document.getElementById('editModal').style.display='none'; }
+    document.getElementById('edit-type').addEventListener('change', function(){
+        const t=this.value;
+        document.getElementById('edit-amount-group').style.display=t==='amount'?'block':'none';
+        document.getElementById('edit-days-group').style.display=t==='days'?'block':'none';
+    });
+    document.getElementById('editCouponForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const p=id=>document.getElementById(id).value;
+        const payload={ code:p('edit-code'), usage_limit:parseInt(p('edit-usage_limit'),10), link:p('edit-link') };
+        if(p('edit-type')==='amount') payload.amount=parseFloat(p('edit-amount'));
+        else payload.days=parseInt(p('edit-days'),10);
+        const res=await fetch(`/coupons/${encodeURIComponent(selectedCouponCode)}?tg_id=${TG_ID}`,{ method:'PATCH', headers:{'Content-Type':'application/json','X-Token':TOKEN}, body:JSON.stringify(payload) });
+        res.ok?location.reload():alert(`❌ ${(await res.json()).error}`);
+    });
+
+    function openDeleteModal(code){ selectedCouponCode=code; document.getElementById('delete-coupon-id').textContent=code; document.getElementById('deleteModal').style.display='flex'; }
+    function closeDeleteModal(){ document.getElementById('deleteModal').style.display='none'; }
+    async function confirmDelete(){ const res=await fetch(`/coupons/${encodeURIComponent(selectedCouponCode)}?tg_id=${TG_ID}`,{ method:'DELETE', headers:{'X-Token':TOKEN} }); res.ok?location.reload():alert(`❌ ${(await res.json()).error}`); }
+
+    document.getElementById('delete-selected-coupons').addEventListener('click', async () => {
+        const selectedCoupons = Array.from(document.querySelectorAll('.coupon-select:checked')).map(cb => cb.dataset.couponCode);
+        if (selectedCoupons.length === 0) return alert('❌ Выберите хотя бы один купон');
+        if (!confirm(`Удалить ${selectedCoupons.length} купонов?`)) return;
+        let success = true;
+        for (const couponCode of selectedCoupons) {
+            const res = await fetch(`/coupons/${encodeURIComponent(couponCode)}?tg_id=${TG_ID}`, {
+                method: 'DELETE',
+                headers: { 'X-Token': TOKEN }
+            });
+            if (!res.ok) {
+                success = false;
+                break;
+            }
+        }
+        success ? location.reload() : alert('❌ Ошибка при массовом удалении купонов');
+    });
+
+    document.getElementById('couponSearchInput').addEventListener('input',function(){ const f=this.value.toLowerCase(); document.querySelectorAll('.data-table tbody tr').forEach(r=>{ r.style.display=Array.from(r.cells).some(td=>td.textContent.toLowerCase().includes(f))?'':'none'; }); });
+    document.getElementById('select-all-coupons').addEventListener('change', function() {
+        const checked = this.checked;
+        document.querySelectorAll('.coupon-select').forEach(cb => cb.checked = checked);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Рефералы | FAST VPN{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/table.css">
+{% endblock %}
+
+{% block header %}
+<div class="page-header">
+    <h1>
+        <i class="fas fa-user-friends"></i>
+        Рефералы
+    </h1>
+    <p class="page-subtitle">Всего: {{ referrals|length }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="search-container">
+        <input type="text" id="referralSearchInput" class="search-input" placeholder="🔍 Поиск по ID, пригласителю или приглашённому...">
+        <button class="btn btn-sm btn-danger" id="delete-selected-referrals">Удалить выбранные</button>
+    </div>
+    <table class="data-table" id="referralsTable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all-referrals"></th>
+                <th>ID</th>
+                <th>Пригласитель (referrer)</th>
+                <th>Приглашённый (referral)</th>
+                <th>Дата регистрации</th>
+                <th>Бонус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in referrals %}
+            <tr>
+                <td><input type="checkbox" class="referral-checkbox" value="{{ r.referrer_tg_id }}:{{ r.referred_tg_id }}"></td>
+                <td>{{ r.id }}</td>
+                <td><a href="/users/{{ r.referrer_tg_id }}" class="link">{{ r.referrer_tg_id }}</a></td>
+                <td><a href="/users/{{ r.referred_tg_id }}" class="link">{{ r.referred_tg_id }}</a></td>
+                <td>{{ r.created_at or '—' }}</td>
+                <td>
+                  {% if r.reward_issued is defined %}
+                    {{ 'Да' if r.reward_issued else 'Нет' }}
+                  {% else %}
+                    {{ r.bonus or '—' }}
+                  {% endif %}
+                </td>
+                <td class="table-cell-actions">
+                    <button class="btn-delete" onclick="deleteReferral('{{ r.referrer_tg_id }}', '{{ r.referred_tg_id }}')">
+                        <i class="fas fa-trash"></i>
+                        Удалить
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+document.getElementById('referralSearchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#referralsTable tbody tr').forEach(row => {
+    const cells = Array.from(row.cells);
+    row.style.display = cells.some(td => td.textContent.toLowerCase().includes(q)) ? '' : 'none';
+  });
+});
+
+async function deleteReferral(referrer_tg_id, referred_tg_id) {
+  if (!confirm('Удалить реферала?')) return;
+  const res = await fetch(`/referrals/one?referrer_tg_id=${referrer_tg_id}&referred_tg_id=${referred_tg_id}&tg_id={{ tg_id }}`, {
+    method: "DELETE",
+    headers: {
+      "X-Token": "{{ token }}"
+    }
+  });
+  if (res.ok) {
+    location.reload();
+  } else {
+    alert("Ошибка при удалении реферала");
+  }
+}
+
+document.getElementById('select-all-referrals').addEventListener('change', function() {
+  const checked = this.checked;
+  document.querySelectorAll('.referral-checkbox').forEach(cb => cb.checked = checked);
+});
+
+document.getElementById('delete-selected-referrals').addEventListener('click', async function() {
+  const selected = Array.from(document.querySelectorAll('.referral-checkbox:checked')).map(cb => cb.value);
+  if (selected.length === 0) {
+    alert('Выберите хотя бы один реферал для удаления.');
+    return;
+  }
+  if (!confirm(`Удалить выбранные рефералы (${selected.length} шт.)?`)) return;
+  let success = true;
+  for (const val of selected) {
+    const [referrer_tg_id, referred_tg_id] = val.split(':');
+    const res = await fetch(`/referrals/one?referrer_tg_id=${referrer_tg_id}&referred_tg_id=${referred_tg_id}&tg_id={{ tg_id }}`, {
+      method: "DELETE",
+      headers: {
+        "X-Token": "{{ token }}"
+      }
+    });
+    if (!res.ok) {
+      success = false;
+      break;
+    }
+  }
+  if (success) location.reload();
+  else alert("Ошибка при массовом удалении рефералов");
+});
+</script>
+{% endblock %}
