@@ -1,26 +1,10 @@
-// SoloBot WEB Application JavaScript
-window.addEventListener('scroll', () => {
-  console.log('Scroll event fired');
-});
-
-window.addEventListener('touchmove', () => {
-  console.log('Touchmove event fired');
-});
-
-window.addEventListener('error', (e) => {
-  console.error('Global error caught:', e.error || e.message);
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-  console.error('Unhandled promise rejection:', e.reason);
-});
-
+// FAST VPN Web Application JavaScript
 // Initialize application
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
-// Application initialization
 function initializeApp() {
     setupModals();
     setupTooltips();
@@ -30,20 +14,16 @@ function initializeApp() {
 
 // Modal Management
 function setupModals() {
-    // Close modals when clicking outside
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
         }
     });
 
-    // Close modals with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             const openModals = document.querySelectorAll('.modal[style*="flex"], .modal[style*="block"]');
-            openModals.forEach(modal => {
-                modal.style.display = 'none';
-            });
+            openModals.forEach(modal => { modal.style.display = 'none'; });
         }
     });
 }
@@ -51,16 +31,12 @@ function setupModals() {
 // Show/Hide Loading Overlay
 function showLoading() {
     const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.display = 'flex';
-    }
+    if (overlay) overlay.style.display = 'flex';
 }
 
 function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
+    if (overlay) overlay.style.display = 'none';
 }
 
 // Toast Notifications
@@ -70,14 +46,9 @@ function showToast(message, type = 'info', duration = 5000) {
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
-    const iconMap = {
-        success: 'check',
-        error: 'times',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    };
-    
+
+    const iconMap = { success: 'check', error: 'times', warning: 'exclamation-triangle', info: 'info-circle' };
+
     toast.innerHTML = `
         <div class="toast-content">
             <i class="toast-icon fas fa-${iconMap[type] || 'info-circle'}"></i>
@@ -87,39 +58,27 @@ function showToast(message, type = 'info', duration = 5000) {
             <i class="fas fa-times"></i>
         </button>
     `;
-    
+
     toastContainer.appendChild(toast);
-    
-    // Auto remove
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.remove();
-        }
-    }, duration);
-    
-    // Add slide-in animation
+
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, duration);
+
     toast.style.transform = 'translateX(100%)';
     toast.style.opacity = '0';
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(0)';
-        toast.style.opacity = '1';
-    }, 100);
+
+    setTimeout(() => { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; }, 50);
 }
 
 // Form Validation
 function validateForm(formElement) {
     const inputs = formElement.querySelectorAll('input[required], select[required], textarea[required]');
     let isValid = true;
-    
+
     inputs.forEach(input => {
         const value = input.value.trim();
-        
         if (!value) {
             input.classList.add('error');
             isValid = false;
-            
-            // Show error message
             let errorElement = input.parentElement.querySelector('.form-error');
             if (!errorElement) {
                 errorElement = document.createElement('span');
@@ -130,48 +89,32 @@ function validateForm(formElement) {
         } else {
             input.classList.remove('error');
             const errorElement = input.parentElement.querySelector('.form-error');
-            if (errorElement) {
-                errorElement.remove();
-            }
+            if (errorElement) errorElement.remove();
         }
     });
-    
+
     return isValid;
 }
 
 // Setup tooltips
 function setupTooltips() {
     const tooltipElements = document.querySelectorAll('[title]');
-    
     tooltipElements.forEach(element => {
-        element.addEventListener('mouseenter', function(e) {
+        element.addEventListener('mouseenter', function() {
             const tooltip = document.createElement('div');
             tooltip.className = 'tooltip';
             tooltip.textContent = this.getAttribute('title');
-            
-            // Remove title to prevent default tooltip
             this.setAttribute('data-title', this.getAttribute('title'));
             this.removeAttribute('title');
-            
             document.body.appendChild(tooltip);
-            
-            // Position tooltip
             const rect = this.getBoundingClientRect();
             tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
             tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
-            
-            setTimeout(() => {
-                tooltip.classList.add('show');
-            }, 100);
+            requestAnimationFrame(() => tooltip.classList.add('show'));
         });
-        
         element.addEventListener('mouseleave', function() {
             const tooltip = document.querySelector('.tooltip');
-            if (tooltip) {
-                tooltip.remove();
-            }
-            
-            // Restore title
+            if (tooltip) tooltip.remove();
             if (this.getAttribute('data-title')) {
                 this.setAttribute('title', this.getAttribute('data-title'));
                 this.removeAttribute('data-title');
@@ -183,22 +126,15 @@ function setupTooltips() {
 // Keyboard shortcuts
 function setupKeyboardShortcuts() {
     document.addEventListener('keydown', function(event) {
-        // Ctrl + / for search
         if (event.ctrlKey && event.key === '/') {
             event.preventDefault();
             const searchInput = document.querySelector('.search-input, input[type="search"]');
-            if (searchInput) {
-                searchInput.focus();
-            }
+            if (searchInput) searchInput.focus();
         }
-        
-        // Ctrl + N for new/create
-        if (event.ctrlKey && event.key === 'n') {
+        if (event.ctrlKey && event.key.toLowerCase() === 'n') {
             event.preventDefault();
             const createButton = document.querySelector('[onclick*="openCreateModal"], [onclick*="create"]');
-            if (createButton) {
-                createButton.click();
-            }
+            if (createButton) createButton.click();
         }
     });
 }
@@ -206,7 +142,6 @@ function setupKeyboardShortcuts() {
 // Connection status checker
 function checkConnectionStatus() {
     let isOnline = navigator.onLine;
-    
     function updateConnectionStatus() {
         if (navigator.onLine && !isOnline) {
             showToast('Соединение восстановлено', 'success');
@@ -216,7 +151,6 @@ function checkConnectionStatus() {
             isOnline = false;
         }
     }
-    
     window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
 }
@@ -226,7 +160,7 @@ function confirmDialog(message, onConfirm, onCancel = null) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
-    
+
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -247,22 +181,22 @@ function confirmDialog(message, onConfirm, onCancel = null) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     const confirmBtn = modal.querySelector('#confirmBtn');
     const cancelBtn = modal.querySelector('#cancelBtn');
-    
+
     confirmBtn.addEventListener('click', function() {
         modal.remove();
         if (onConfirm) onConfirm();
     });
-    
+
     cancelBtn.addEventListener('click', function() {
         modal.remove();
         if (onCancel) onCancel();
     });
-    
+
     // Close on outside click
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
@@ -284,9 +218,9 @@ function formatCurrency(amount, currency = '₽') {
 
 // Format date
 function formatDate(dateString) {
-    const options = { 
-        year: 'numeric', 
-        month: '2-digit', 
+    const options = {
+        year: 'numeric',
+        month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
@@ -318,7 +252,7 @@ function debounce(func, wait) {
 
 
 // Export functions for global use
-window.SoloBot = {
+window.FastVPN = {
     showLoading,
     hideLoading,
     showToast,
