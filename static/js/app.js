@@ -286,3 +286,29 @@ function throttle(func, limit) {
         }
     }
 }
+
+// Tilt effect for elements with .tilt
+(function initTilt() {
+  const supportsPointer = window.matchMedia('(pointer:fine)').matches;
+  if (!supportsPointer) return;
+  const tiltElements = () => document.querySelectorAll('.tilt');
+  const maxTilt = 6; // degrees
+  const perspective = 900;
+  function onMove(e) {
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const rx = (py - 0.5) * (maxTilt * 2);
+    const ry = (0.5 - px) * (maxTilt * 2);
+    target.style.transform = `perspective(${perspective}px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
+  }
+  function onLeave(e) { e.currentTarget.style.transform = ''; }
+  function bind(el) {
+    el.style.willChange = 'transform';
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+  }
+  function init() { tiltElements().forEach(bind); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
