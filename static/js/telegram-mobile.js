@@ -30,15 +30,15 @@ class TelegramMobileApp {
         this.tg.ready();
         this.tg.expand();
         
-        // Set theme colors
-        this.tg.setHeaderColor('#2563eb');
-        this.tg.setBackgroundColor('#ffffff');
+        // Set light theme colors
+        this.tg.setHeaderColor('#FAFBFC');
+        this.tg.setBackgroundColor('#FAFBFC');
         
-        // Configure main button
+        // Configure main button with new color scheme
         this.tg.MainButton.setParams({
             text: 'Сохранить',
-            color: '#2563eb',
-            text_color: '#ffffff'
+            color: '#5B9BD5',
+            text_color: '#FFFFFF'
         });
         
         // Configure back button
@@ -46,9 +46,10 @@ class TelegramMobileApp {
             this.handleBackButton();
         });
         
-        // Handle viewport changes
+        // Handle viewport changes with improved responsiveness
         this.tg.onEvent('viewportChanged', () => {
             this.handleViewportChange();
+            this.updateSafeAreas();
         });
         
         // Handle theme changes
@@ -56,8 +57,15 @@ class TelegramMobileApp {
             this.handleThemeChange();
         });
         
+        // Setup haptic feedback for modern UX
+        this.setupHapticFeedback();
+        
         // Apply initial theme
         this.applyTelegramTheme();
+        
+        // Enable modern features
+        this.enableCloudStorage();
+        this.enableBiometricAuth();
     }
     
     // Apply Telegram theme to CSS variables
@@ -905,6 +913,67 @@ class TelegramMobileApp {
             .catch(error => {
                 console.log('Service Worker registration failed:', error);
             });
+    }
+    
+    // Modern UX improvements
+    setupHapticFeedback() {
+        if (!this.tg?.HapticFeedback) return;
+        
+        // Add haptic feedback to buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('button, .btn, .nav-link')) {
+                this.tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+    }
+    
+    updateSafeAreas() {
+        const root = document.documentElement;
+        const safeAreas = this.tg?.safeAreaInset || {};
+        
+        if (safeAreas.top) root.style.setProperty('--mobile-safe-area-top', `${safeAreas.top}px`);
+        if (safeAreas.bottom) root.style.setProperty('--mobile-safe-area-bottom', `${safeAreas.bottom}px`);
+        if (safeAreas.left) root.style.setProperty('--mobile-safe-area-left', `${safeAreas.left}px`);
+        if (safeAreas.right) root.style.setProperty('--mobile-safe-area-right', `${safeAreas.right}px`);
+    }
+    
+    enableCloudStorage() {
+        if (!this.tg?.CloudStorage) return;
+        
+        // Auto-save form data
+        this.autoSaveFormData();
+    }
+    
+    enableBiometricAuth() {
+        if (!this.tg?.BiometricManager) return;
+        
+        // Initialize biometric authentication
+        this.tg.BiometricManager.init(() => {
+            console.log('Biometric authentication initialized');
+        });
+    }
+    
+    autoSaveFormData() {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('input', this.debounce((e) => {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                this.tg.CloudStorage.setItem(`form_${form.id}`, JSON.stringify(data));
+            }, 1000));
+        });
+    }
+    
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 }
 

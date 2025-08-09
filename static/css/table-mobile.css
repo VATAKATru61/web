@@ -1,23 +1,17 @@
-/* Telegram Web App Mobile Optimization */
+/* Table Mobile Optimization - Light Theme */
 :root {
-    /* Telegram-specific colors */
-    --tg-theme-bg-color: var(--bg-primary);
-    --tg-theme-text-color: var(--text-primary);
-    --tg-theme-hint-color: var(--text-muted);
-    --tg-theme-link-color: var(--primary-color);
-    --tg-theme-button-color: var(--primary-color);
-    --tg-theme-button-text-color: #ffffff;
-    --tg-theme-secondary-bg-color: var(--bg-secondary);
+    /* Table-specific mobile colors */
+    --table-bg: var(--bg-card);
+    --table-header-bg: var(--bg-tertiary);
+    --table-border: var(--border-light);
+    --table-hover: var(--bg-secondary);
+    --table-text: var(--text-primary);
+    --table-text-muted: var(--text-secondary);
     
-    /* Mobile viewport adjustments */
-    --mobile-safe-area-top: env(safe-area-inset-top);
-    --mobile-safe-area-bottom: env(safe-area-inset-bottom);
-    --mobile-safe-area-left: env(safe-area-inset-left);
-    --mobile-safe-area-right: env(safe-area-inset-right);
-    
-    /* Telegram Web App specific heights */
-    --tg-viewport-height: 100vh;
-    --tg-viewport-stable-height: 100vh;
+    /* Mobile table spacing */
+    --table-cell-padding: var(--space-md);
+    --table-row-gap: var(--space-sm);
+    --table-border-radius: var(--radius-xl);
 }
 
 /* Base mobile optimizations */
@@ -666,92 +660,130 @@ textarea {
    =============================================== */
 
 @media (max-width: 768px) {
-    /* ОСНОВНАЯ ПРОБЛЕМА: таблицы должны отображаться на мобильных */
+    /* Mobile Table Optimization - Light Minimalist Design */
     
     .table-container {
         width: 100% !important;
         max-width: 100% !important;
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: var(--space-xl) !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        border-radius: var(--table-border-radius) !important;
+        box-shadow: var(--shadow-card) !important;
+        border: 1px solid var(--table-border) !important;
     }
     
     .data-table {
         width: 100% !important;
         min-width: 600px !important; /* Минимальная ширина для прокрутки */
         border-collapse: collapse !important;
-        background: white !important;
-        font-size: 14px !important;
-        border: 1px solid #dee2e6 !important;
-        border-radius: 8px !important;
+        background: var(--table-bg) !important;
+        font-size: var(--font-size-sm) !important;
+        border: none !important;
+        border-radius: var(--table-border-radius) !important;
         overflow: hidden !important;
+        font-family: var(--font-family) !important;
     }
     
     .data-table th,
     .data-table td {
-        padding: 12px 8px !important;
+        padding: var(--table-cell-padding) !important;
         text-align: left !important;
-        border-bottom: 1px solid #dee2e6 !important;
+        border-bottom: 1px solid var(--table-border) !important;
         vertical-align: middle !important;
         white-space: nowrap !important;
+        color: var(--table-text) !important;
     }
     
     .data-table th {
-        background-color: #f8f9fa !important;
-        font-weight: 600 !important;
-        color: #495057 !important;
-        font-size: 13px !important;
+        background: var(--table-header-bg) !important;
+        font-weight: var(--font-weight-semibold) !important;
+        color: var(--table-text) !important;
+        font-size: var(--font-size-xs) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
         position: sticky !important;
         top: 0 !important;
         z-index: 10 !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
     }
     
     .data-table tbody tr {
-        background: white !important;
-        transition: background-color 0.2s ease !important;
+        background: var(--table-bg) !important;
+        transition: all var(--transition) !important;
     }
     
     .data-table tbody tr:hover {
-        background-color: #f8f9fa !important;
+        background: var(--table-hover) !important;
+        transform: translateX(2px) !important;
     }
     
-    /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: кнопки действий в таблице */
+    /* Table Action Buttons - Light Design */
     .table-cell-actions {
         min-width: 200px !important;
         text-align: center !important;
+        padding: var(--space-sm) !important;
     }
     
     .table-cell-actions button,
     .table-cell-actions a {
-        margin: 2px !important;
-        padding: 6px 12px !important;
-        font-size: 12px !important;
-        border-radius: 4px !important;
-        display: inline-block !important;
+        margin: var(--space-xs) !important;
+        padding: var(--space-sm) var(--space-md) !important;
+        font-size: var(--font-size-xs) !important;
+        border-radius: var(--radius-lg) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: var(--space-xs) !important;
         text-decoration: none !important;
         border: 1px solid transparent !important;
         cursor: pointer !important;
-        transition: all 0.2s ease !important;
+        transition: all var(--transition) !important;
+        font-weight: var(--font-weight-medium) !important;
+        min-height: 32px !important;
+        backdrop-filter: blur(5px) !important;
+        -webkit-backdrop-filter: blur(5px) !important;
     }
     
     .btn-edit {
-        background-color: #007bff !important;
-        color: white !important;
-        border-color: #007bff !important;
+        background: var(--primary-light) !important;
+        color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+    
+    .btn-edit:hover {
+        background: var(--primary-color) !important;
+        color: var(--text-inverse) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: var(--shadow-md) !important;
     }
     
     .btn-delete {
-        background-color: #dc3545 !important;
-        color: white !important;
-        border-color: #dc3545 !important;
+        background: var(--error-light) !important;
+        color: var(--error-color) !important;
+        border-color: var(--error-color) !important;
+    }
+    
+    .btn-delete:hover {
+        background: var(--error-color) !important;
+        color: var(--text-inverse) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: var(--shadow-md) !important;
     }
     
     .btn-view {
-        background-color: #28a745 !important;
-        color: white !important;
-        border-color: #28a745 !important;
+        background: var(--success-light) !important;
+        color: var(--success-color) !important;
+        border-color: var(--success-color) !important;
+    }
+    
+    .btn-view:hover {
+        background: var(--success-color) !important;
+        color: var(--text-inverse) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: var(--shadow-md) !important;
     }
     
     /* Адаптация других элементов таблицы */

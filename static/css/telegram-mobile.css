@@ -1,30 +1,40 @@
 /* Telegram Web App Mobile Optimization */
 :root {
-    /* Telegram-specific colors */
-    --tg-theme-bg-color: var(--bg-primary);
+    /* Telegram-specific colors - Updated for light theme */
+    --tg-theme-bg-color: var(--bg-card);
     --tg-theme-text-color: var(--text-primary);
     --tg-theme-hint-color: var(--text-muted);
     --tg-theme-link-color: var(--primary-color);
     --tg-theme-button-color: var(--primary-color);
-    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-button-text-color: var(--text-inverse);
     --tg-theme-secondary-bg-color: var(--bg-secondary);
+    --tg-theme-header-bg-color: var(--bg-card);
+    --tg-theme-section-bg-color: var(--bg-tertiary);
+    --tg-theme-destructive-text-color: var(--error-color);
+    --tg-theme-accent-text-color: var(--primary-color);
+    --tg-theme-subtitle-text-color: var(--text-secondary);
     
     /* Mobile viewport adjustments */
-    --mobile-safe-area-top: env(safe-area-inset-top);
-    --mobile-safe-area-bottom: env(safe-area-inset-bottom);
-    --mobile-safe-area-left: env(safe-area-inset-left);
-    --mobile-safe-area-right: env(safe-area-inset-right);
+    --mobile-safe-area-top: env(safe-area-inset-top, 0px);
+    --mobile-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --mobile-safe-area-left: env(safe-area-inset-left, 0px);
+    --mobile-safe-area-right: env(safe-area-inset-right, 0px);
     
     /* Telegram Web App specific heights */
     --tg-viewport-height: 100vh;
     --tg-viewport-stable-height: 100vh;
+    --tg-content-safe-area-inset-top: max(var(--mobile-safe-area-top), 20px);
+    --tg-content-safe-area-inset-bottom: max(var(--mobile-safe-area-bottom), 20px);
 }
 
 /* Base mobile optimizations */
 html {
     -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    scroll-behavior: smooth;
 }
 
 body {
@@ -32,17 +42,40 @@ body {
     -webkit-overflow-scrolling: touch;
     font-size: 16px; /* Prevent zoom on iOS */
     min-height: var(--tg-viewport-height);
-    background-color: var(--tg-theme-bg-color);
+    background: linear-gradient(145deg, var(--tg-theme-bg-color) 0%, var(--tg-theme-secondary-bg-color) 100%);
+    background-attachment: fixed;
     color: var(--tg-theme-text-color);
+    user-select: none; /* Prevent text selection on mobile */
+    -webkit-user-select: none;
+    -moz-user-select: none;
 }
 
 /* Telegram Web App container */
 .tg-web-app {
     min-height: var(--tg-viewport-stable-height);
-    padding-top: var(--mobile-safe-area-top);
-    padding-bottom: var(--mobile-safe-area-bottom);
+    padding-top: var(--tg-content-safe-area-inset-top);
+    padding-bottom: var(--tg-content-safe-area-inset-bottom);
     padding-left: var(--mobile-safe-area-left);
     padding-right: var(--mobile-safe-area-right);
+    position: relative;
+}
+
+/* Telegram Main Button integration */
+.tg-main-button {
+    position: fixed;
+    bottom: var(--mobile-safe-area-bottom);
+    left: var(--mobile-safe-area-left);
+    right: var(--mobile-safe-area-right);
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    padding: var(--space-lg);
+    font-size: var(--font-size);
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: var(--shadow-xl);
+    z-index: 10000;
+    transition: all var(--transition);
 }
 
 /* Mobile-first responsive design */
@@ -52,53 +85,74 @@ body {
         min-height: 100vh;
     }
     
-    /* Mobile sidebar - bottom navigation */
+    /* Mobile sidebar - side navigation with modern design */
     .sidebar {
         position: fixed !important;
-        bottom: 0 !important;
+        top: 0 !important;
         left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        transform: translateY(100%) !important;
-        transition: transform 0.3s ease !important;
-        border-top: 2px solid var(--primary-color) !important;
-        border-right: none !important;
-        border-radius: 16px 16px 0 0 !important;
-        background: var(--bg-primary) !important;
-        z-index: 8888 !important;
-        box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.15) !important;
-        max-height: 70vh !important;
+        bottom: 0 !important;
+        width: 85vw !important;
+        max-width: 350px !important;
+        height: 100vh !important;
+        transform: translateX(-100%) !important;
+        transition: transform var(--transition-slow) cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+        border: none !important;
+        border-radius: 0 var(--radius-2xl) var(--radius-2xl) 0 !important;
+        background: var(--bg-overlay) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        z-index: 9998 !important;
+        box-shadow: var(--shadow-xl) !important;
         overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
     
     .sidebar.open {
-        transform: translateY(0) !important;
-        display: block !important;
+        transform: translateX(0) !important;
+    }
+    
+    /* Mobile overlay for sidebar */
+    .sidebar.open::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 85vw;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        z-index: -1;
+        animation: fadeIn var(--transition-slow) ease;
     }
     
     .sidebar-header {
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
+        padding: var(--space-2xl) var(--space-xl);
+        padding-top: calc(var(--tg-content-safe-area-inset-top) + var(--space-xl));
+        border-bottom: 1px solid var(--border-light);
         text-align: center;
+        background: var(--tg-theme-header-bg-color);
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
     
     .sidebar-title {
-        font-size: 1.25rem;
+        font-size: var(--font-size-xl);
         margin-bottom: 0.25rem;
     }
     
     .sidebar-subtitle {
-        font-size: 0.75rem;
+        font-size: var(--font-size-xs);
+        color: var(--tg-theme-subtitle-text-color);
     }
     
-    /* Mobile navigation menu */
+    /* Mobile navigation menu - list style */
     .nav-menu {
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 0.5rem;
-        padding: 1rem;
+        padding: var(--space-lg) 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
     }
     
     .nav-item {
@@ -106,92 +160,106 @@ body {
     }
     
     .nav-link {
-        padding: 1rem 0.5rem !important;
-        flex-direction: column !important;
-        text-align: center !important;
-        border-radius: var(--radius-sm) !important;
-        border-right: none !important;
-        gap: 0.5rem !important;
-        min-height: 80px !important;
-        font-size: 0.75rem !important;
-        background: var(--bg-secondary) !important;
-        border: 1px solid var(--border-color) !important;
+        padding: var(--space-lg) var(--space-xl) !important;
+        flex-direction: row !important;
+        text-align: left !important;
+        border-radius: 0 var(--radius-xl) var(--radius-xl) 0 !important;
+        border: none !important;
+        gap: var(--space-md) !important;
+        min-height: 56px !important;
+        font-size: var(--font-size-sm) !important;
+        background: transparent !important;
         text-decoration: none !important;
-        color: var(--text-secondary) !important;
+        color: var(--tg-theme-text-color) !important;
         display: flex !important;
         cursor: pointer !important;
+        margin-right: var(--space-lg) !important;
+        position: relative !important;
+        transition: all var(--transition) !important;
+        -webkit-tap-highlight-color: transparent !important;
+        align-items: center !important;
     }
     
-    .nav-link:hover,
+    .nav-link:hover {
+        background: var(--tg-theme-section-bg-color) !important;
+        transform: translateX(8px) !important;
+    }
+    
     .nav-link.active {
-        background: var(--primary-color) !important;
-        color: white !important;
-        border-color: var(--primary-color) !important;
-        text-decoration: none !important;
+        background: var(--primary-gradient) !important;
+        color: var(--text-inverse) !important;
+        transform: translateX(8px) !important;
+        box-shadow: var(--shadow-md) !important;
+    }
+    
+    .nav-link.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 24px;
+        background: var(--text-inverse);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     }
     
     .nav-icon {
-        font-size: 1.5rem;
+        font-size: var(--font-size-lg);
+        width: 24px;
+        text-align: center;
+        transition: transform var(--transition-fast);
+    }
+    
+    .nav-link:hover .nav-icon {
+        transform: scale(1.1);
     }
     
     /* Mobile main content */
     .main-content {
         margin-left: 0 !important;
-        padding: 0.75rem !important;
+        padding: var(--space-lg) !important;
+        padding-top: calc(var(--tg-content-safe-area-inset-top) + 64px) !important; /* Account for mobile menu button */
+        padding-bottom: calc(var(--tg-content-safe-area-inset-bottom) + var(--space-lg)) !important;
         flex: 1;
-        padding-bottom: 80px; /* Space for potential bottom navigation */
         width: 100% !important;
         max-width: 100vw !important;
         box-sizing: border-box !important;
         overflow-x: hidden !important;
-        padding-top: 80px !important; /* Space for menu button */
+        min-height: 100vh !important;
     }
     
     /* Mobile header */
-    .mobile-menu-toggle {
-        display: flex !important;
-        background: var(--bg-primary) !important;
-        border: 2px solid var(--primary-color) !important;
-        border-radius: var(--radius-sm);
-        padding: 1rem;
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: var(--shadow-md) !important;
-        position: fixed !important;
-        top: 1rem;
-        right: 1rem;
-        z-index: 9999 !important;
-        width: 56px !important;
-        height: 56px !important;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer !important;
-        color: var(--primary-color) !important;
-        transition: all 0.2s ease;
-    }
-    
-    .mobile-menu-toggle:hover {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-    }
-    
     .page-header {
-        margin: 0 0 1.5rem 0;
-        padding: 1rem;
-        background: var(--bg-primary);
-        border-radius: var(--radius);
-        border: 1px solid var(--border-color);
-        text-align: center;
+        margin: calc(-1 * (var(--tg-content-safe-area-inset-top) + 64px)) calc(-1 * var(--space-lg)) var(--space-xl) calc(-1 * var(--space-lg)) !important;
+        padding: var(--space-xl) var(--space-lg) !important;
+        padding-top: calc(var(--tg-content-safe-area-inset-top) + 64px + var(--space-lg)) !important;
+        background: var(--tg-theme-header-bg-color) !important;
+        border-radius: 0 0 var(--radius-2xl) var(--radius-2xl) !important;
+        border: 1px solid var(--border-light) !important;
+        border-top: none !important;
+        text-align: center !important;
+        box-shadow: var(--shadow-card) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
     }
     
     .page-header h1 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+        font-size: var(--font-size-xl) !important;
+        margin-bottom: var(--space-sm) !important;
+        color: var(--tg-theme-text-color) !important;
+        font-weight: var(--font-weight-bold) !important;
+    }
+    
+    .page-header h1 i {
+        color: var(--tg-theme-accent-text-color) !important;
+        margin-right: var(--space-sm) !important;
     }
     
     .page-subtitle {
-        font-size: 0.875rem;
+        font-size: var(--font-size-sm) !important;
+        color: var(--tg-theme-subtitle-text-color) !important;
+        font-weight: var(--font-weight-normal) !important;
     }
     
     /* Mobile cards and stats */
