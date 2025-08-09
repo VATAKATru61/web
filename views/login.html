@@ -14,12 +14,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Meta tags -->
-    <meta name="description" content="Вход в панель управления SoloBot">
+    <meta name="description" content="Вход в панель управления FAST VPN">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#2563eb">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-16x16.png">
 </head>
 <body>
     <div class="login-page">
@@ -30,7 +30,7 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <h1 class="login-title">Добро пожаловать</h1>
-                    <p class="login-subtitle">Войдите в панель управления SoloBot</p>
+                    <p class="login-subtitle">Войдите в панель управления FAST VPN</p>
                 </div>
                 
                 {% if error %}
@@ -67,7 +67,7 @@
                             autocomplete="current-password"
                         >
                         <i class="fas fa-lock login-input-icon"></i>
-                        <button type="button" class="login-password-toggle" id="togglePassword">
+                        <button type="button" class="login-password-toggle" id="togglePassword" aria-label="Показать пароль">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -85,8 +85,6 @@
                         <span class="login-button-text">Войти</span>
                     </button>
                 </form>
-                
-
             </div>
         </div>
     </div>
@@ -96,188 +94,29 @@
         document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = this.querySelector('i');
-            
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         });
         
         // Form validation and submission
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const loginButton = document.getElementById('loginButton');
-            
-            // Basic validation
             if (!username || !password) {
-                showError('Пожалуйста, заполните все поля');
+                alert('Пожалуйста, заполните все поля');
                 return;
             }
-            
-            // Show loading state
             loginButton.classList.add('loading');
             loginButton.disabled = true;
-            
-            // Simulate API call delay
-            setTimeout(() => {
-                // Submit the form
-                this.submit();
-            }, 500);
+            setTimeout(() => { this.submit(); }, 300);
         });
-        
-        // Input validation
-        function validateInput(input) {
-            const value = input.value.trim();
-            
-            if (value) {
-                input.classList.remove('error');
-                input.classList.add('success');
-            } else {
-                input.classList.remove('success');
-                input.classList.add('error');
-            }
-        }
-        
-        // Add validation listeners
-        document.getElementById('username').addEventListener('blur', function() {
-            validateInput(this);
-        });
-        
-        document.getElementById('password').addEventListener('blur', function() {
-            validateInput(this);
-        });
-        
-        // Remove validation on input
-        document.querySelectorAll('.login-input').forEach(input => {
-            input.addEventListener('input', function() {
-                this.classList.remove('error', 'success');
-            });
-        });
-        
-        // Error display function
-        function showError(message) {
-            // Remove existing errors
-            const existingError = document.querySelector('.login-error');
-            if (existingError) {
-                existingError.remove();
-            }
-            
-            // Create new error
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'login-error';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle login-error-icon"></i>
-                <span>${message}</span>
-            `;
-            
-            // Insert before form
-            const form = document.getElementById('loginForm');
-            form.parentNode.insertBefore(errorDiv, form);
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
-        }
-        
-        // Auto-focus on username field
-        document.getElementById('username').focus();
-        
-        // Add keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const activeElement = document.activeElement;
-                if (activeElement.id === 'username') {
-                    document.getElementById('password').focus();
-                    e.preventDefault();
-                }
-            }
-        });
-        
-        // Prevent form submission on Enter in username field
-        document.getElementById('username').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('password').focus();
-            }
-        });
-        
-        // Add floating label effect
-        document.querySelectorAll('.login-input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.classList.add('focused');
-            });
-            
-            input.addEventListener('blur', function() {
-                if (!this.value) {
-                    this.parentElement.classList.remove('focused');
-                }
-            });
-            
-            // Check on load
-            if (input.value) {
-                input.parentElement.classList.add('focused');
-            }
-        });
-        
-        // Add ripple effect to button
-        document.getElementById('loginButton').addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}px;
-                top: ${y}px;
-                background: rgba(255, 255, 255, 0.5);
-                border-radius: 50%;
-                pointer-events: none;
-                animation: ripple 0.6s ease-out;
-            `;
-            
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-        
-        // Add CSS for ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                0% {
-                    transform: scale(0);
-                    opacity: 1;
-                }
-                100% {
-                    transform: scale(2);
-                    opacity: 0;
-                }
-            }
-            
-            .login-form-group.focused .login-input {
-                transform: translateY(-2px);
-            }
-            
-            .login-form-group {
-                transition: all 0.3s ease;
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>
