@@ -7,7 +7,7 @@ import httpx
 import os
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/views")
+templates = Jinja2Templates(directory="views")
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:3003/api")
 ADMIN_TG_ID = os.getenv("ADMIN_TG_ID", "0")

@@ -899,12 +899,8 @@ class TelegramMobileApp {
     
     registerServiceWorker() {
         navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('Service Worker registered:', registration);
-            })
-            .catch(error => {
-                console.log('Service Worker registration failed:', error);
-            });
+            .then(() => {})
+            .catch(() => {});
     }
 }
 
@@ -919,7 +915,6 @@ function toggleMobileMenuSimple() {
             window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
         }
     }
-    console.log('Menu toggled!'); // Для отладки
 }
 
 // Дополнительная инициализация кнопки меню для надежности
@@ -937,7 +932,6 @@ document.addEventListener('DOMContentLoaded', function() {
         menuButton.style.pointerEvents = 'auto';
         menuButton.style.zIndex = '10000';
         
-        console.log('Menu button initialized successfully!');
     }
 });
 

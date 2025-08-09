@@ -1,13 +1,10 @@
-from fastapi import FastAPI
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 import httpx
 import os
 
-app = FastAPI()
-
 router = APIRouter()
-templates = Jinja2Templates(directory="app/views")
+templates = Jinja2Templates(directory="views")
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api")
 ADMIN_TG_ID = os.getenv("ADMIN_TG_ID", "0")
@@ -66,6 +63,3 @@ async def delete_referral_one(
             return {"success": False, "detail": str(e)}
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}

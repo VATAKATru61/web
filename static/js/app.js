@@ -1,12 +1,4 @@
-// SoloBot WEB Application JavaScript
-window.addEventListener('scroll', () => {
-  console.log('Scroll event fired');
-});
-
-window.addEventListener('touchmove', () => {
-  console.log('Touchmove event fired');
-});
-
+// App JavaScript
 window.addEventListener('error', (e) => {
   console.error('Global error caught:', e.error || e.message);
 });
